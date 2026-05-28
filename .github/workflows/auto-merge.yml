@@ -16,5 +16,4 @@ jobs:
     name: Auto-Merge
     uses: Integral-Productivity/devops-excellence/.github/workflows/reusable-auto-merge.yml@main
     secrets:
-      AUTOMERGE_APP_PRIVATE_KEY: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

@@ -1,0 +1,10 @@
+{
+  "name": "integral-productivity-engineering",
+  "description": "Engineering practice for Integral Productivity: routes cold-start of new repos to the right work-type template + scaffolding skill, then verifies the new repo classifies under devops-excellence's tier/work-type model. Bundles the work-type scaffolding skills (bootstrap-mcp-server, bootstrap-private-sdk) so the router can delegate in-plugin. Companion to the `devops-excellence` repo's bootstrap CLI and `template-*` repos.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Integral Productivity",
+    "email": "kraigparkinson@integralproductivity.com",
+    "url": "https://github.com/Integral-Productivity"
+  }
+}
