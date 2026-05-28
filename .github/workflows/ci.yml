@@ -1,0 +1,25 @@
+# Standard Tier 3 CI — minimal dependency-review floor.
+#
+# Tier 3 repos (claude plugins, omnifocus plugins, content repos) do not
+# standardize a build/test step here; work-type-specific CI (lint markdown,
+# validate plugin manifests, tsc) lives in additional workflows owned by the
+# template's scaffold layer. The standard guarantees the dependency-review
+# floor only — every PR that touches deps gets vetted against the CVE feed.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: Integral-Productivity/devops-excellence/.github/workflows/reusable-dependency-review.yml@main
