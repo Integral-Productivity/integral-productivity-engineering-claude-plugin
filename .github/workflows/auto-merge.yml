@@ -1,5 +1,14 @@
 # Standard auto-merge caller. Identical to the Tier 1/2 templates; kept here so
 # the Tier 3 spec can be copied as a complete unit without cross-tier reads.
+#
+# KNOWN-BROKEN, TRACKED: this caller still points at the PRIVATE devops-excellence
+# host. A PUBLIC repo cannot call a private reusable, so this job fails at startup
+# (0 jobs). Unlike ci.yml and claude.yml — repointed to the public
+# reusable-workflows host in the same change — auto-merge cannot be moved by a
+# repoint alone: the reusable reads a 1Password PEM via the PRIVATE read-pem-from-1p
+# composite action and routes OP_SERVICE_ACCOUNT_TOKEN through Actions, a
+# security-surface change that needs its own ADR. Tracked in
+# Integral-Productivity/devops-excellence#189 (auto-merge follow-up).
 
 name: Auto-Merge
 
