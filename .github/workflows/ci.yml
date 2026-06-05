@@ -22,4 +22,4 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: Integral-Productivity/devops-excellence/.github/workflows/reusable-dependency-review.yml@main
+    uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-dependency-review.yml@main
