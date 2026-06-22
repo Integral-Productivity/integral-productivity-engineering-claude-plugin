@@ -3,13 +3,10 @@
 
 name: Claude Code
 
-# REQUIRED: a workflow_call reusable can only USE permissions the caller
-# GRANTS. reusable-claude.yml needs write on contents/issues/pull-requests
-# (+ id-token, actions:read). Without this block the org/repo default
-# (contents: read) is all that's granted, and GitHub's workflow_call
-# validator rejects the call at startup — a 0-second startup_failure with no
-# jobs, before the @claude `if:` gate is even evaluated. Mirror the reusable's
-# own permissions block. See devops-excellence#160.
+# REQUIRED — mirrors reusable-claude.yml's permissions. A workflow_call reusable
+# can only USE permissions the caller GRANTS; without this block the validator
+# rejects the call at startup (0-second startup_failure on every trigger). See
+# tier1/.github/workflows/claude.yml for the full rationale.
 permissions:
   contents: write
   pull-requests: write
@@ -34,6 +31,6 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
-    uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-claude.yml@main
+    uses: Integral-Productivity/devops-excellence/.github/workflows/reusable-claude.yml@main
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
