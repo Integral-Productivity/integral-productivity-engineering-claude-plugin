@@ -1,0 +1,118 @@
+name: Promote to stable
+
+# Advances the `stable` branch to a tagged release commit.
+# The Integral-Productivity internal marketplace listing
+# (https://github.com/Integral-Productivity/marketplace-internal) tracks the
+# `stable` ref for this plugin. Tagging vX.Y.Z is what publishes a
+# release to marketplace users.
+#
+# Triggered by: push of a semver tag like `v0.2.0`. Pre-release suffixes
+# (e.g. `v0.2.0-rc.1`) are intentionally NOT matched and will not advance
+# `stable`.
+#
+# Why the ip-releaser App token (not the default GITHUB_TOKEN)
+# -----------------------------------------------------------
+# `stable` is protected by a repository ruleset (require-PR) so it can't be
+# rewritten casually. That ruleset lists the ip-releaser App as a bypass
+# actor, so this job must push AS that App. The default GITHUB_TOKEN is not
+# a bypass actor and its push is declined (`GH006: protected branch ...`).
+# We therefore mint an ip-releaser installation token and check out with it
+# so the fast-forward push authenticates as the App. Same credential model
+# as release-please.yml.
+#
+# Unlike release-please (which soft-fails so it never blocks main CI), this
+# job HARD-FAILS if the App token can't be minted: a release tag whose
+# `stable` promotion silently no-ops would ship an old version to users.
+#
+# Guarantees:
+#   - The tag SHA's `.claude-plugin/plugin.json` `version` must match the
+#     tag (minus the `v` prefix). Mismatches fail the run, leaving
+#     `stable` untouched.
+#   - The push is a fast-forward only. If the tagged commit is not a
+#     descendant of the current `stable`, the push fails — `stable` is
+#     never rewound or force-overwritten.
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify org variable identifiers are configured
+        env:
+          APP_ID: ${{ vars.IP_RELEASER_APP_ID }}
+          CLIENT_ID: ${{ vars.IP_RELEASER_APP_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APP_ID:-}" ] || [ -z "${CLIENT_ID:-}" ]; then
+            echo "::error::vars.IP_RELEASER_APP_ID / IP_RELEASER_APP_CLIENT_ID are not set. promote-stable pushes as the ip-releaser App (the stable ruleset bypass actor); without them it cannot advance stable. Set them at the org level (visibility ALL)." >&2
+            exit 1
+          fi
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@8d006a0d0a4fd505af7f7ce589e7f768385ff5e4 # v3.0.0
+
+      - name: Read ip-releaser App PEM from 1Password
+        id: pem
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          set -euo pipefail
+          PEM=$(op read "op://ip-automation/ip-releaser/private_key" 2>/dev/null)
+          if [ -z "$PEM" ]; then
+            echo "::error::Failed to read PEM from 1P (missing op://ip-automation/ip-releaser/private_key, expired OP_SERVICE_ACCOUNT_TOKEN, or 1P outage). See Integral-Productivity/ip-bots/docs/runbooks/migrate-to-1password.md." >&2
+            exit 1
+          fi
+          echo "::add-mask::$PEM"
+          {
+            echo "private-key<<EOF_PEM"
+            echo "$PEM"
+            echo "EOF_PEM"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.IP_RELEASER_APP_CLIENT_ID }}
+          private-key: ${{ steps.pem.outputs.private-key }}
+
+      - name: Checkout tagged commit as the App
+        uses: actions/checkout@v4
+        with:
+          # Persist the App token so the fast-forward push below authenticates
+          # as the ip-releaser App (the stable ruleset's bypass actor).
+          token: ${{ steps.app-token.outputs.token }}
+          # Full history so the fast-forward push can resolve the relationship
+          # between the tagged commit and the existing `stable` branch.
+          fetch-depth: 0
+
+      - name: Verify plugin.json version matches tag
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          tag_version="${tag#v}"
+          plugin_version=$(python3 -c "import json,sys; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          echo "Tag:           ${tag}"
+          echo "Tag version:   ${tag_version}"
+          echo "plugin.json:   ${plugin_version}"
+          if [ "${tag_version}" != "${plugin_version}" ]; then
+            echo "::error::Tag ${tag} does not match plugin.json version ${plugin_version}. Refusing to advance stable." >&2
+            exit 1
+          fi
+
+      - name: Fast-forward stable to tagged commit
+        run: |
+          set -euo pipefail
+          tag_sha="$(git rev-parse HEAD)"
+          echo "Advancing refs/heads/stable to ${tag_sha} (${GITHUB_REF_NAME})"
+          # No --force. If `stable` exists and the tagged commit is not a
+          # fast-forward descendant, this push fails and `stable` is left
+          # alone — exactly what we want.
+          git push origin "${tag_sha}:refs/heads/stable"

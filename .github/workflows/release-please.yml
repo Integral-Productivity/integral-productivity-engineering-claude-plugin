@@ -1,0 +1,143 @@
+name: release-please
+
+# Opens / updates a "Release PR" on every push to `main`. When merged, it
+# creates the matching `vX.Y.Z` git tag and GitHub Release, which in turn
+# fires `promote-stable.yml` to fast-forward the `stable` branch that the
+# Integral-Productivity internal marketplace tracks.
+#
+# This is the org-standard release-gate substrate: releases bump the version
+# (release-please derives it from Conventional Commits and patches
+# .claude-plugin/plugin.json), so plugin updates actually propagate. See
+# Integral-Productivity/marketplace-internal docs/adr/0001 and issue #34.
+#
+# Pairs with:
+#   - release-please-config.json     (per-package release behavior)
+#   - .release-please-manifest.json  (current released version baseline)
+#   - version.txt                    (required by release-type: simple)
+#   - .github/workflows/promote-stable.yml  (consumes the tag we produce)
+#
+# Why this isn't a `uses:` call to devops-excellence's reusable
+# -----------------------------------------------------------
+#
+# devops-excellence ships reusable-release-please.yml + a composite action
+# that wrap the same logic below — but GitHub Actions blocks PUBLIC repos
+# (this one) from calling PRIVATE reusable workflows (devops-excellence is
+# private). The orchestrator startup-rejects the workflow before any job
+# runs (0s duration, no logs, no jobs). See
+# https://docs.github.com/en/actions/sharing-automations/reusing-workflows#access-to-reusable-workflows
+# and Integral-Productivity/devops-excellence#126 (tracking issue for a
+# public-host repo that would restore the DRY consumption pattern for
+# public plugins).
+#
+# Until that lands, the steps below are inlined verbatim from the
+# reusable workflow's body in devops-excellence. Keep them in sync if the
+# reusable's behavior changes meaningfully.
+#
+# Why this is App-mediated
+# ------------------------
+#
+# Integral-Productivity's enterprise policy sets
+# `can_approve_pull_request_reviews: false`, which blocks the default
+# GITHUB_TOKEN from creating PRs. release-please needs that capability
+# to open the Release PR. The ip-releaser GitHub App
+# (Integral-Productivity/ip-bots#50/#51) was created for this. Its
+# installation tokens bypass the enterprise GITHUB_TOKEN-targeted policy.
+#
+# PREREQUISITE: the ip-releaser App must be installed on this repo for the
+# Release PR to open. Until it is, the soft-failure contract below emits an
+# annotation and exits 0 — this workflow never blocks main-branch CI.
+#
+# Credentials:
+#   vars.IP_RELEASER_APP_ID          — numeric, public identifier (org var, ALL)
+#   vars.IP_RELEASER_APP_CLIENT_ID   — alphanumeric Iv23li..., consumed by
+#                                      actions/create-github-app-token@v3
+#                                      (org var, ALL)
+#   secrets.OP_SERVICE_ACCOUNT_TOKEN — 1P service account token, read-only on
+#                                      the ip-automation vault (org secret)
+#
+# Soft-failure contract: if credentials are absent, the PEM read fails,
+# or token-mint fails, an annotation is emitted and the job exits 0. This
+# workflow never blocks main-branch CI.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify org variable identifiers are configured
+        id: app_id_check
+        env:
+          APP_ID: ${{ vars.IP_RELEASER_APP_ID }}
+          CLIENT_ID: ${{ vars.IP_RELEASER_APP_CLIENT_ID }}
+        run: |
+          missing=0
+          if [ -z "${APP_ID:-}" ]; then
+            echo "::warning::vars.IP_RELEASER_APP_ID is not set on this repo or the org. Fix: gh variable set IP_RELEASER_APP_ID --org Integral-Productivity --visibility all --body '<numeric-app-id>'"
+            missing=1
+          fi
+          if [ -z "${CLIENT_ID:-}" ]; then
+            echo "::warning::vars.IP_RELEASER_APP_CLIENT_ID is not set on this repo or the org. Fix: gh variable set IP_RELEASER_APP_CLIENT_ID --org Integral-Productivity --visibility all --body '<Iv23li...>'"
+            missing=1
+          fi
+          if [ "$missing" = "1" ]; then
+            echo "::warning::Skipping release-please — required org variable identifiers are missing. See warnings above."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install 1Password CLI
+        if: steps.app_id_check.outputs.ready == 'true'
+        uses: 1password/install-cli-action@8d006a0d0a4fd505af7f7ce589e7f768385ff5e4 # v3.0.0
+
+      - name: Read ip-releaser App PEM from 1Password
+        id: pem
+        if: steps.app_id_check.outputs.ready == 'true'
+        continue-on-error: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          set +e
+          PEM=$(op read "op://ip-automation/ip-releaser/private_key" 2>/dev/null)
+          if [ -z "$PEM" ]; then
+            echo "::error::Failed to read PEM from 1P (missing vault item op://ip-automation/ip-releaser/private_key, expired OP_SERVICE_ACCOUNT_TOKEN, or 1P outage). See Integral-Productivity/ip-bots/docs/runbooks/migrate-to-1password.md for vault provisioning."
+            exit 1
+          fi
+          echo "::add-mask::$PEM"
+          {
+            echo "private-key<<EOF_PEM"
+            echo "$PEM"
+            echo "EOF_PEM"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Generate App token
+        id: app-token
+        if: |
+          steps.app_id_check.outputs.ready == 'true'
+          && steps.pem.outcome == 'success'
+        continue-on-error: true
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.IP_RELEASER_APP_CLIENT_ID }}
+          private-key: ${{ steps.pem.outputs.private-key }}
+
+      - name: Error if token generation failed
+        if: steps.app-token.outcome == 'failure'
+        run: |
+          echo "::error::App token generation failed — PEM was successfully read from 1P at op://ip-automation/ip-releaser/private_key, but actions/create-github-app-token@v3 still failed. Check that vars.IP_RELEASER_APP_CLIENT_ID is set at the org level and that the ip-releaser App is installed on this repo."
+
+      - name: Run release-please
+        if: steps.app-token.outcome == 'success'
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
