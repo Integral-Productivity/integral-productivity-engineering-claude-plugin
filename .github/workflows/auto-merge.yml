@@ -1,15 +1,15 @@
-# Auto-merge caller for this PUBLIC plugin repo.
+# Auto-merge caller for Tier 3 plugin repos, which call the PUBLIC
+# reusable-workflows host. This is deliberately NOT identical to the Tier 1/2
+# templates: those call the PRIVATE devops-excellence reusable and forward the
+# whole-vault OP_SERVICE_ACCOUNT_TOKEN, whereas the public reusable declares
+# only the SCOPED OP_AUTOMERGE_PUBLIC_TOKEN (read-only on the ip-automation-public
+# vault, per ADR-045 / ip-bots#207). GitHub also blocks a public repo from
+# calling a private reusable workflow, which is why Tier 3 uses the public host.
+# Passing OP_SERVICE_ACCOUNT_TOKEN here is an UNDECLARED secret and fails the run
+# at compile time (startup_failure — "workflow file issue").
 #
-# Points at the PUBLIC reusable-workflows host (a public repo cannot call a
-# private reusable workflow or composite action), and forwards the SCOPED
-# 1Password token OP_AUTOMERGE_PUBLIC_TOKEN — read-only on the ip-automerge PEM
-# alone (its own ip-automation-public vault), never the whole-vault
-# OP_SERVICE_ACCOUNT_TOKEN. See devops-excellence ADR-045 and #192 (the
-# security-surface decision + migration), and the reusable's header for the
-# threat model. Requires the ip-automerge App installed on this repo (org-wide,
-# repository_selection: all) and the org variables IP_AUTOMERGE_APP_{ID,CLIENT_ID}
-# (visibility: all). If the token/App is absent the reusable fails closed and
-# never blocks a PR.
+# The tier3-claude-plugin and tier3-omnifocus-plugin copies of this file are
+# byte-identical by design (the fitness spec sources one governance set for both).
 
 name: Auto-Merge
 
