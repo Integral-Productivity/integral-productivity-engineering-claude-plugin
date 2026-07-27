@@ -15,6 +15,20 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+' # pre-release suffixes (e.g. -rc.1) are excluded
 
+# Required, and easy to lose. A called reusable cannot request greater
+# permissions than its caller grants, `reusable-promote-stable.yml` declares
+# `contents: write`, and this repo and the org both default
+# `default_workflow_permissions` to `read`. Without this block GitHub rejects
+# the workflow graph at compile time: the run ends in `startup_failure` with 0
+# jobs and no logs, which reads like an outage rather than a config error.
+#
+# The ADR-064 thin-caller migration dropped this block across the plugin repos
+# migrated on 2026-07-21. Because promote-stable only fires on a release tag,
+# the breakage stays latent until the next release. Confirmed live in
+# holacracy-claude-plugin, whose v0.10.0 tag failed to promote.
+permissions:
+  contents: write
+
 jobs:
   promote:
     uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-promote-stable.yml@v1
