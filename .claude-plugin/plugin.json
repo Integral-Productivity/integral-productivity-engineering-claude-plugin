@@ -1,6 +1,6 @@
 {
   "name": "integral-productivity-engineering",
-  "description": "Engineering practice for Integral Productivity: routes cold-start of new repos to the right work-type template + scaffolding skill, then verifies the new repo classifies under devops-excellence's tier/work-type model. Bundles the work-type scaffolding skills (bootstrap-mcp-server, bootstrap-private-sdk) so the router can delegate in-plugin. Companion to the `devops-excellence` repo's bootstrap CLI and `template-*` repos.",
+  "description": "Engineering practice for Integral Productivity, covering the life of a repo and the life of a unit of work. Cold-start: routes new repos to the right work-type template + scaffolding skill and verifies they classify under devops-excellence's tier/work-type model, delegating in-plugin to bootstrap-mcp-server and bootstrap-private-sdk. Work intake: issue-triage assigns state, category, and the GlassFrog role accountable for an issue (per SAE-009), and writing-dispatch-prompts defines the contract for handing that work to another agent session. Companion to the `devops-excellence` repo's bootstrap CLI and `template-*` repos.",
   "version": "0.2.0",
   "author": {
     "name": "Integral Productivity",
