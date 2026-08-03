@@ -25,10 +25,12 @@ halves — state and route — turn on evidence gathered outside the issue text.
 ## Hard constraints
 
 **No label vocabulary lives in this skill.** State and category come from the
-repo's own `docs/agents/triage-labels.md`; route values come from GlassFrog via
-`devops-excellence/templates/role-labels.json`. Every previous copy of the
-vocabulary in this org has gone stale — see `reference/UPSTREAM.md`. If you find
-yourself about to write a label name into this file, don't.
+repo's own `docs/agents/triage-labels.md`; route values from
+`devops-excellence/templates/role-labels.json`, and the evidence to choose among
+them from its sibling `role-context.json` — both generated from GlassFrog, which
+remains the source of truth (SAE-009). Every previous copy of the vocabulary in
+this org has gone stale — see `reference/UPSTREAM.md`. If you find yourself about
+to write a label name into this file, don't.
 
 **Never triage from the issue body alone.** A measured pass over a 54-issue
 backlog found roughly 40% of issues had drifted from their own text — already
@@ -95,9 +97,14 @@ recommendation, or the transition looks unusual, flag it and ask before acting.
 
 ### 4. Infer the route
 
-Read `reference/route-inference.md` and follow it. Pull the role corpus in one
-`glassfrog_list_roles` call, join to the manifest on `original_role_id ?? id`,
-and weigh domains, then accountabilities, then purpose.
+Read `reference/route-inference.md` and follow it. Fetch the two generated
+manifests — `role-labels.json` for the legal values, `role-context.json` for the
+evidence — join them on `roleId`, dedupe on `original_role_id ?? id`, and weigh
+domains, then accountabilities, then purpose.
+
+Both are plain `gh api` fetches. **Route inference needs no authenticated
+GlassFrog session**, so it runs unattended; reach for live GlassFrog only as a
+freshness check when a role appears missing or stale.
 
 Routing runs in **every** IP repo, including those whose `triage-labels.md` does
 not mention the axis — SAE-009 put route authority in GlassFrog, not in any
@@ -111,8 +118,9 @@ Then take exactly one branch, per that reference:
 - **Escalate** — ownership is genuinely unclear. Apply `needs-triage-decision`,
   apply **no** route label, and comment naming each candidate with the
   accountability or domain text its claim rests on.
-- **Degrade** — GlassFrog is unreachable. Skip routing, say so with the date, and
-  do **not** fall back to matching on role names.
+- **Degrade** — the evidence manifest cannot be read. Skip routing, say so with
+  the date and which fetch failed, and do **not** fall back to matching on role
+  names. If you substitute live GlassFrog, name the source you used.
 
 ### 5. Apply enrichment
 
@@ -144,8 +152,8 @@ When an *enhancement* is rejected outright — never a bug — record it per
 
 - `reference/vocabulary-discovery.md` — the two vocabulary sources, their
   scopes, known per-repo divergence, and lazy label provisioning.
-- `reference/route-inference.md` — the GlassFrog join, the evidence hierarchy,
-  the confidence gate, and the three branches.
+- `reference/route-inference.md` — the two-manifest join, the evidence
+  hierarchy, the confidence gate, and the three branches.
 - `reference/AGENT-BRIEF.md` — writing a durable agent-ready handoff.
   Verbatim from Matt Pocock's `triage` skill (MIT).
 - `reference/OUT-OF-SCOPE.md` — the concept-keyed rejection knowledge base.
@@ -179,4 +187,4 @@ When an *enhancement* is rejected outright — never a bug — record it per
 This skill has produced a defensible route on at least two issues in at least
 two different repos — one apply, one escalate — with the escalation comment
 naming candidates by quoted accountability text, and with the degradation branch
-exercised once against an unreachable GlassFrog.
+exercised once against an unreachable evidence manifest.
