@@ -10,7 +10,9 @@ Engineering practice for Integral Productivity, packaged as a Claude Code plugin
 | `bootstrap-mcp-server` | skill | IP-specific MCP server scaffolding: project layout, Vercel HTTP entry point, dual-transport pattern, tool / service module organization. Renamed from `ip-mcp-builder` when moved out of the skills monorepo. |
 | `bootstrap-private-sdk` | skill | TypeScript SDK on GitHub Packages scaffolding: scope/org naming, cross-platform lockfile gotcha, SAML SSO PATs, stacked-PR pitfall. |
 | `writing-dispatch-prompts` | skill | The contract a dispatch prompt must satisfy when handing a unit of work to another agent session: claim instruction, verified ground truth, scope fence, settled premises, verification, PR conventions. Plus the two-signal claim check (lagging issue label vs. leading session list). |
+| `issue-triage` | skill | Triages GitHub issues to a state, a category, and the `handling:route:*` role accountable for the work. Ground-truths each issue against live `main` / ADRs / cross-referenced issues before assigning state, then infers the accountable GlassFrog role per [SAE-009](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-009-role-derived-issue-routing-labels.md) — applying when one role clearly owns it, escalating to `needs-triage-decision` when it doesn't. Hardcodes no label vocabulary; reads it live from the repo and from GlassFrog. Implements the decision in [praxis#1202](https://github.com/Integral-Productivity/praxis/issues/1202). |
 | `/devops-cold-start` | slash command | Manual invocation of the cold-start router (for cases where phrase-detection misses). |
+| `/issue-triage` | slash command | Manual invocation of the triage skill against an issue number or a backlog scope. |
 
 ## Install
 
