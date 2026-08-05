@@ -8,7 +8,10 @@ description: >
   or setting up GitHub Packages publication for an existing TypeScript library.
   Captures the non-obvious gotchas — scope/org naming, cross-platform lockfiles,
   SAML SSO on PATs, stacked-PR pitfalls — that cost hours of debugging on the
-  glassfrog-sdk-ts bootstrap. IMPORTANT: invoke this skill BEFORE running
+  glassfrog-sdk-ts bootstrap.
+  Also covers the case where the upstream API is undocumented or
+  unversioned, where the SDK's real job is drift detection rather than
+  convenience. IMPORTANT: invoke this skill BEFORE running
   `npm init` or copy-pasting another SDK's package.json — the order of the
   scaffold steps matters, and most of the friction is preventable upfront.
 status: draft
@@ -292,6 +295,82 @@ developer PATs and platform env vars (Vercel, Render, etc.).
 In CI: use `${{ secrets.GITHUB_TOKEN }}` (auto-SSO'd) as `NODE_AUTH_TOKEN`.
 In Vercel / other platforms: add the PAT as the `NODE_AUTH_TOKEN` env var.
 ```
+
+## When the upstream API is undocumented
+
+Some upstreams publish no versioned reference for the endpoints you need. The
+Reclaim task API is one: the vendor documents its product and its Scheduling
+Links webhooks, but not the task endpoints an SDK would wrap.
+
+This changes what the SDK is *for*. With a documented API, an SDK is a
+convenience — types, retries, a nicer surface. With an undocumented one, the
+SDK's primary job is **drift detection**: being the single place that finds out
+the shape changed, before every consumer discovers it separately in production.
+
+That reframing has three consequences.
+
+### 1. The extraction argument gets stronger, not weaker
+
+The usual objection — "only one consumer, why extract" — inverts. Two consumers
+calling an undocumented API directly means a rename breaks both independently,
+and each debugs it alone. One SDK means one contract suite tells you first.
+
+Extract at the **first** hint of a second consumer, not the second.
+
+### 2. Two test layers, not one
+
+- **Recorded fixtures**, run on every commit. Fast, offline, and they pin the
+  shape you currently believe in.
+- **A live smoke test**, run nightly against the real API. This is the layer
+  that actually detects drift. Fixtures cannot — they are a recording of the
+  past.
+
+Keep the live test narrow: touch each resource once, assert the fields your
+consumers read, and assert nothing about data content. A test that asserts on
+the user's actual tasks fails for reasons that are not drift.
+
+Wire it so failure opens **one** labelled issue rather than a nightly stream of
+duplicates:
+
+    - name: Open an issue on drift
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: existing } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner, repo: context.repo.repo,
+            state: 'open', labels: 'api-drift',
+          })
+          if (existing.length) return
+          await github.rest.issues.create({ /* ... */ })
+
+Let the live job fail the build on `main` but not on pull requests. A vendor
+outage should not block someone's unrelated PR:
+
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+
+### 3. Types are claims, and they will be wrong
+
+Generated types are impossible; hand-written ones are hypotheses. Two habits
+that pay for themselves:
+
+- **Model the fields your consumers actually read**, and let the rest pass
+  through untyped. A field you type but never use is a false break waiting to
+  happen.
+- **Parse defensively at the boundary.** An unexpected `null` in a field you
+  typed as required should surface as a typed SDK error naming the field and
+  endpoint, not as `Cannot read properties of null` three call frames away in a
+  consumer.
+
+### The revisit trigger this creates
+
+An undocumented-API SDK is justified by evidence that the API actually moves. If
+the nightly smoke test detects **zero** changes over twelve months and no third
+consumer has appeared, the extraction is no longer earning its keep — merge it
+back and let the remaining consumer own the calls.
+
+Record that in the ADR when you extract, so the decision has an off-ramp rather
+than becoming permanent by default.
 
 ## After the first release
 
