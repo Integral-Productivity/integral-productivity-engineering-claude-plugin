@@ -24,7 +24,9 @@ and what *the fleet* is doing right now. That is the part worth writing.
 A dispatch prompt contains these parts, in this order:
 
 1. **Claim instruction** — the exact command, plus the STOP condition if a claim
-   already exists.
+   already exists. Take it verbatim from the org-wide
+   `Integral-Productivity/devops-excellence/docs/agents/agent-dispatch-claim-protocol.md`;
+   do not paraphrase it, and do not invent a per-repo variant.
 2. **The issue link**, and "read the body first."
 3. **Ground truth verified beyond the issue body** — what you checked, what you
    found, and the date you checked it. Highest-value section: it is everything
@@ -41,7 +43,8 @@ A dispatch prompt contains these parts, in this order:
 
 **Claim by label, never by assignment**, wherever an automation triggers on
 `issues: [assigned]`. Assigning to claim spawns another session — the claim step
-becomes the runaway it was meant to prevent.
+becomes the runaway it was meant to prevent. This is why the claim protocol's
+release-at-merge and reaper halves touch labels and refs only.
 
 **When the work product mutates the coordination substrate** — a reaper that
 deletes claim locks, a sweep that strips claim labels — fence it to dry-run by
