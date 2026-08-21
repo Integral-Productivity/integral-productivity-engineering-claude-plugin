@@ -171,8 +171,9 @@ When an *enhancement* is rejected outright — never a bug — record it per
 - `Integral-Productivity/praxis/docs/adr/0116-routing-labels-name-glassfrog-roles-and-are-generated-not-authored.md`
   — the praxis adoption, the 50-character constraint, and the #1093 worked
   example this skill's inference is calibrated against.
-- `Integral-Productivity/praxis/docs/agents/agent-dispatch-claim-protocol.md`
-  — the git-ref compare-and-swap claim primitive.
+- `Integral-Productivity/devops-excellence/docs/agents/agent-dispatch-claim-protocol.md`
+  — the git-ref compare-and-swap claim primitive, org-wide. The lock label this
+  skill must never touch is the one that protocol sets.
 - `Integral-Productivity/praxis/issues/1202` — the decision this skill
   implements. It is not closed by this skill existing; it needs the decision
   recorded in an ADR or in `docs/agents/triage-labels.md`.
