@@ -761,6 +761,18 @@ if (transport === 'http') {
 
 ### Resource Registration
 
+> **Templates need a `list` callback to be discoverable.** Claude Code has no
+> `resources/templates/list` surface -- its MCP resource tooling wraps `resources/list`,
+> `resources/read`, and a `resources/directory/read` extension, and nothing else. A
+> `ResourceTemplate` registered with `list: undefined` is not rendered poorly there; it is
+> **not rendered at all**. It stays readable by a hand-composed URI, so nothing errors --
+> the resource is simply undiscoverable. Supplying the callback costs a read on every
+> connect and refresh, so the callback must share one memoized read across templates backed
+> by the same query and cap the enumeration. Both halves are one decision. See
+> [SAE-014](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-014-mcp-resource-templates-need-list-callbacks.md)
+> and the **Resource Template Pattern** section of `SKILL.md` for the rule, the cost, and
+> the shared-and-capped implementation.
+
 Expose data as resources for efficient, URI-based access:
 
 ```typescript

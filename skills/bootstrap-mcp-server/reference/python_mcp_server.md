@@ -526,6 +526,19 @@ async def interactive_tool(resource_id: str, ctx: Context) -> str:
 
 ### Resource Registration
 
+> **A templated resource is invisible in Claude Code unless something enumerates it.**
+> Claude Code has no `resources/templates/list` surface, so a URI template with no
+> corresponding `resources/list` entries is not rendered there at all -- it stays readable
+> by a hand-composed URI, so nothing errors, and the resource is simply undiscoverable. Any
+> resource meant to be *found* must appear in `resources/list` with concrete URIs, and that
+> enumeration must be shared and capped, because `resources/list` fires unprompted on
+> connect and refresh. The rule, the trade-off, and the TypeScript implementation are in the
+> **Resource Template Pattern** section of `SKILL.md`; the decision is
+> [SAE-014](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-014-mcp-resource-templates-need-list-callbacks.md).
+> The FastMCP listing API differs from the TypeScript SDK's per-template `list` callback --
+> verify the shape against the version you are on rather than porting the TypeScript
+> snippet literally.
+
 Expose data as resources for efficient, template-based access:
 
 ```python
