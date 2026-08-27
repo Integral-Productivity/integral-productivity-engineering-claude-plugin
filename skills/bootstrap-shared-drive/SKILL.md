@@ -38,6 +38,14 @@ version: 0.1.0
   into a ◉ drive's CLAUDE.md as static prose without also resolving them
   live at generation time.** Stale role text is worse than no template at
   all.
+- **Never write a Coach-facing artifact into a 👤 drive's Client-named
+  folder.** A client drive is two audiences in one root: `_Internal/` is
+  Coach-only, and the `<Client Name> – <Program>/` folder is shared with the
+  Client. Retention/winback analysis, the Coach's commercial stake, hypotheses
+  about the Client's motives, raw developmental material, pricing, and unsent
+  outreach all go in `_Internal/`. Default to `_Internal/` when unsure — see
+  [SAE-015](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md)
+  Decision part 4.
 - **Never guess a domain holder for a drive with no recognized prefix.**
   Use the fallback template and leave the domain-holder line as an open
   question for the human, per
@@ -82,6 +90,18 @@ Load `templates/base-CLAUDE.md` and the type-matched overlay
 `templates/fallback-CLAUDE.md`), substitute the resolved values, and stamp
 the provenance footer with today's date and this skill's version.
 
+### Step 3b — Create the confidentiality zone (👤 drives only)
+
+Create `_Internal/` at the drive root if it does not exist, so the destination
+for Coach-facing artifacts exists before anything needs to be written to it.
+Identify the Client-facing folder (the one named after the Client) and
+substitute its actual name into `<CLIENT_FACING_FOLDER>` in the template —
+resolve it from disk rather than constructing it, since these folder names
+frequently contain en-dashes and non-breaking spaces that break typed paths.
+
+Do **not** create a zone for ◉ or fallback drives — they have no external-party
+audience and the split would be noise.
+
 ### Step 4 — Write and confirm
 
 Write the result to `CLAUDE.md` at the drive's root. If a CLAUDE.md
@@ -108,3 +128,5 @@ any "Working in this drive" bullets the human already added.
   the drive's actual domain holder and essential context.
 - The "never overwrite hand-added bullets" behavior has been exercised at
   least once against a drive with existing custom content.
+- A 👤 drive has been bootstrapped with `_Internal/` created and
+  `<CLIENT_FACING_FOLDER>` correctly resolved from disk.
