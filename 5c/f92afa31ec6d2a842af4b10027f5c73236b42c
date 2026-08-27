@@ -1,0 +1,21 @@
+skills/bootstrap-shared-drive/SKILL.md
+  s_022f968c3bc2d4::t_e129f03e131fd0 41-48,93-104,131-132
+skills/bootstrap-shared-drive/templates/client-CLAUDE.md
+  s_022f968c3bc2d4::t_5af6aaadc95e3b 28-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5cf92afa31ec6d2a842af4b10027f5c73236b42c",
+  "prompts": {},
+  "sessions": {
+    "s_022f968c3bc2d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ae422c6-fff8-4e18-8397-012dae3542a7",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Kraig Parkinson <kraig.parkinson@gmail.com>"
+    }
+  }
+}
