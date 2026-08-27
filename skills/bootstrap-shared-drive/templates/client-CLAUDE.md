@@ -25,6 +25,48 @@ Use Praxis Ubiquitous Language: **Client**, not "contact" or "co-learner";
 **Encounter**, not "session"; **Engagement**, not "deal" or "pipeline
 stage" in prose.
 
+## Where things go — internal vs Client-facing
+
+**This drive has two zones. Default to `_Internal/`.**
+
+| Zone | Path | Who it is for |
+|---|---|---|
+| **Coach-only** | `_Internal/` | Never shared with the Client. Anything *about* the Client. |
+| **Client-facing** | `<CLIENT_FACING_FOLDER>` | The Client's own materials. Assume the Client sees everything here. |
+
+The Client-facing folder is named after the Client and holds their working
+documents, recordings, and reports. **It is theirs.** Do not put Coach
+artifacts there.
+
+**Always `_Internal/`, no exceptions:**
+
+- Winback, retention, downsell, renewal, and churn analysis
+- Anything naming the Coach's stake — revenue, sunk cost, pipeline value
+- Hypotheses about *why* the Client did something, or about their psychology
+- Raw developmental material — DevOpp/Insight dumps, Stratum or action-logic
+  attributions not yet shaped for the Client
+- Engagement reviews, pricing, contract strategy
+- Draft outreach the Client has not received yet
+
+**Client-facing only when the artifact was made to be handed over** — something
+co-created in an Encounter, a report you would read aloud together, something
+already sent.
+
+**If you are unsure, it goes in `_Internal/`.** Over-classifying costs nothing;
+a Client reading a strategy document about themselves costs the relationship.
+The test: *would I be comfortable if the Client opened this without me in the
+room?* If the honest answer is "only if I could frame it first," it is internal.
+
+Coaching commands (`/coaching:winback`, `engagement-review`, `renewal-prep`,
+`expansion-review`) emit Coach-facing analysis and do **not** choose a zone for
+you. Decide the destination before writing, not after.
+
+> `_Internal/` is a convention backed by **Drive sharing permissions**, not by
+> the filesystem. It protects nothing unless the Client-facing folder is the
+> only surface actually shared with the Client. If the Client is a full Shared
+> Drive member, the folder name does no work — verify sharing rather than
+> assuming.
+
 ## Working in this drive
 
 - Treat everything in this drive as confidential coaching data. Do not
