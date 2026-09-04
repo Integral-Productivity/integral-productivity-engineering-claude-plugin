@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.3.0...v0.4.0) (2026-09-04)
+
+
+### Features
+
+* **bootstrap-shared-drive:** add _Internal/ zone to 👤 client drives ([#37](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/37)) ([feb1aae](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/feb1aae1c93427ee82dbf330a429bd8354aca9ca))
+
+
+### Bug Fixes
+
+* **claude:** repoint software-architecture and lean-management to marketplace-labs ([#41](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/41)) ([3d5c80f](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/3d5c80f17ceff6aa025ec4218761ec5cba474200))
+
 ## [0.3.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.2.0...v0.3.0) (2026-08-24)
 
 
