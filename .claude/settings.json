@@ -24,6 +24,8 @@
     "integral-productivity-engineering@integral-productivity-internal": true,
     "software-architecture@integral-productivity-labs": true,
     "product-architecture@integral-productivity-internal": true,
-    "lean-management@integral-productivity-labs": true
+    "lean-management@integral-productivity-labs": true,
+    "software-architecture@integral-productivity-internal": true,
+    "lean-management@integral-productivity-internal": true
   }
 }
