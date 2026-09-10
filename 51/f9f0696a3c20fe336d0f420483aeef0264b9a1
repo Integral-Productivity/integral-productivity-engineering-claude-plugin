@@ -1,0 +1,43 @@
+CLAUDE.md
+  s_c423ed7e65ae70::t_75cdc080de5829 33-35,38-45
+  s_c423ed7e65ae70::t_5466d2e15a73ea 46
+README.md
+  s_c423ed7e65ae70::t_a6092bc5be9585 16-28
+docs/adr/0002-guard-hooks-ship-from-this-plugin-behind-an-exit-10-fail-open-contract.md
+  s_c423ed7e65ae70::t_b4ca32ba063d31 11-74
+  s_ace8ecdd86c4eb::t_8df2b913bdc8ba 1-10
+.github/workflows/hooks-test.yml
+  s_c423ed7e65ae70::t_da61fb75457114 1-109
+.github/workflows/hold-hooks-changes.yml
+  s_c423ed7e65ae70::t_1e52415250dc45 1-81
+.adr-dir
+  s_c423ed7e65ae70::t_5ce76702af0e55 1
+.claude-plugin/plugin.json
+  s_c423ed7e65ae70::t_9c36d49195140c 3
+docs/adr/0001-record-architecture-decisions.md
+  s_c423ed7e65ae70::t_a645259c8f90a3 1-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "51f9f0696a3c20fe336d0f420483aeef0264b9a1",
+  "prompts": {},
+  "sessions": {
+    "s_ace8ecdd86c4eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab50b6ec-7916-4d7b-8d0f-6f8421784f3f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Kraig Parkinson <kraig.parkinson@gmail.com>"
+    },
+    "s_c423ed7e65ae70": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f9e43987-658d-41e0-9259-8615127de8d3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Kraig Parkinson <kraig.parkinson@gmail.com>"
+    }
+  }
+}
