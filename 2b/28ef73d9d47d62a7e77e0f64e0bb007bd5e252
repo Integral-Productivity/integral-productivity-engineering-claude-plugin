@@ -1,0 +1,25 @@
+hooks/guard-status.test.sh
+  s_c423ed7e65ae70::t_072bf1e274321b 1-66
+hooks/guard-status.sh
+  s_c423ed7e65ae70::t_58f72562d84ba8 1-55
+hooks/hooks.json
+  s_c423ed7e65ae70::t_d2c2016b697055 1-38
+hooks/hooks-config.test.sh
+  s_c423ed7e65ae70::t_f5cb18fee688ed 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2b28ef73d9d47d62a7e77e0f64e0bb007bd5e252",
+  "prompts": {},
+  "sessions": {
+    "s_c423ed7e65ae70": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f9e43987-658d-41e0-9259-8615127de8d3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Kraig Parkinson <kraig.parkinson@gmail.com>"
+    }
+  }
+}
