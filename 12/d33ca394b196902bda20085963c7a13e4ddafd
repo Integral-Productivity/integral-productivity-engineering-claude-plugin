@@ -1,0 +1,26 @@
+hooks/worktree-path-guard.test.sh
+  s_c423ed7e65ae70::t_97b84ad8ba2c5f 49-50
+hooks/worktree-path-guard.sh
+  s_c423ed7e65ae70::t_1ddbff5220a2f8 31
+hooks/pem-read-guard.test.sh
+  s_c423ed7e65ae70::t_bd15ecbd9995f5 47-66
+hooks/pem-read-guard.sh
+  s_c423ed7e65ae70::t_d894a76d6ef318 36
+  s_c423ed7e65ae70::t_a612303a5e19a4 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "12d33ca394b196902bda20085963c7a13e4ddafd",
+  "prompts": {},
+  "sessions": {
+    "s_c423ed7e65ae70": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f9e43987-658d-41e0-9259-8615127de8d3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Kraig Parkinson <kraig.parkinson@gmail.com>"
+    }
+  }
+}
