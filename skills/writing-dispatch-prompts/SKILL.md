@@ -58,8 +58,15 @@ Launch with a declared roster instead. The default for a code chip is **empty**:
 ```bash
 claude -n <name> -w <worktree> \
   --strict-mcp-config --mcp-config '{"mcpServers":{}}' \
-  "<dispatch prompt>"
+  -- "<dispatch prompt>"
 ```
+
+**Keep the `--` before the prompt.** `--mcp-config` takes a variable number of
+values, so it treats a prompt placed after it as one more config path. The
+launch then fails with `Invalid MCP configuration: MCP config file not found:
+<cwd>/<your prompt>`. The alternative is to put the prompt before the MCP flags.
+For the same reason, give config files as absolute paths: a relative path is
+resolved against the launch directory.
 
 `--strict-mcp-config` drops every server not given by `--mcp-config` — user,
 project, plugin, and claude.ai connectors alike. `--mcp-config` is repeatable,
@@ -75,10 +82,11 @@ so admit servers by adding files, never by dropping the flag:
 server is a scope decision, like a file in the fence. A personal or finance
 connector in a code chip needs a reason written down, or it does not go in.
 
-A claude.ai connector cannot be admitted this way: it is not a local server
-definition. If a chip genuinely needs one, launch it without
-`--strict-mcp-config` and record in the dispatch prompt that the full roster was
-a deliberate choice.
+A claude.ai connector has no local server definition to put in a file. As of
+2026-09-17, no way to admit one under strict mode has been tested. If a chip
+needs one, the known fallback is to launch without `--strict-mcp-config`. That
+brings back the whole ambient roster, not just the one connector, so record in
+the dispatch prompt that this was a deliberate choice and why.
 
 Measured on 2026-09-17: the ambient roster loaded 172 servers, 1,724 tools, and
 9 child processes (253 MB RSS) into a headless session before it did any work;

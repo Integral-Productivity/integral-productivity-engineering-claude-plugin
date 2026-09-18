@@ -56,6 +56,11 @@ The ambient children were `@playwright/mcp` (two processes), `episodic-memory`,
 `claude` process itself measured 109 MB and 146 MB in the two runs. That
 difference is heap variance, not a roster effect.
 
+Placing the prompt after `--mcp-config` breaks the launch:
+`claude -p --strict-mcp-config --mcp-config '{"mcpServers":{}}' "Reply ok"`
+fails with `MCP config file not found: <cwd>/Reply ok`. The same command with
+`--` before the prompt, or with the prompt first, answers `ok`.
+
 Admitting one named server composes as expected: strict mode plus a second
 `--mcp-config` file holding only `mermaid` loaded exactly that server, connected,
 with 29 tools.
