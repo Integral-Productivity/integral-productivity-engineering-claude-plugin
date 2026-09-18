@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.5.0...v0.6.0) (2026-09-18)
+
+
+### Features
+
+* **writing-dispatch-prompts:** scope a chip's MCP roster at launch ([#52](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/52)) ([af560d2](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/af560d23cbf1dc097a5b11811e319492c98023b7))
+
 ## [0.5.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.4.0...v0.5.0) (2026-09-07)
 
 
