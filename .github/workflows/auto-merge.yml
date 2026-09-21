@@ -41,7 +41,7 @@ permissions:
 jobs:
   auto-merge:
     name: Auto-Merge
-    uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-auto-merge.yml@260938fe67fc40c5b67678e7d6bf4b7e0c6af90f # v1.2.0
+    uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-auto-merge.yml@b0caf389303ff150b6c99d618ca7730c5ce6f589 # v1.3.0
     secrets:
       OP_AUTOMERGE_PUBLIC_TOKEN: ${{ secrets.OP_AUTOMERGE_PUBLIC_TOKEN }}
       OP_LABELER_PUBLIC_TOKEN: ${{ secrets.OP_LABELER_PUBLIC_TOKEN }}
