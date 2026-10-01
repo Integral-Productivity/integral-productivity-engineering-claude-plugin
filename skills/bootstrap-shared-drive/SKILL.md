@@ -34,10 +34,12 @@ version: 0.1.0
   through the Praxis MCP tools (`praxis_get_client`, `praxis_search`,
   `praxis_list_encounters`, etc.). The HubSpot contact link in the template
   is identification-only.
-- **Never hand-copy a GlassFrog role's purpose/accountabilities/domains
-  into a ◉ drive's CLAUDE.md as static prose without also resolving them
-  live at generation time.** Stale role text is worse than no template at
-  all.
+- **Never write a GlassFrog role's purpose, accountabilities, domains, or
+  fillers into a ◉ drive's CLAUDE.md.** Write only the stable identifiers
+  (role name, role ID, parent circle) plus the lookup directive from the
+  template, so each session reads the role live from GlassFrog. A copy made
+  at generation time goes stale on the next governance change, and stale
+  role text is worse than no template at all.
 - **Never write a Coach-facing artifact into a 👤 drive's Client-named
   folder.** A client drive is two audiences in one root: `_Internal/` is
   Coach-only, and the `<Client Name> – <Program>/` folder is shared with the
@@ -77,9 +79,12 @@ name as seen in the Cowork project). Match the leading character:
   `mcp__hubspot__*`.
 - **circle-role**: Call `glassfrog_search` (or `glassfrog_list_roles`) with
   the drive's `<Name>` to find the matching role. Call `glassfrog_get_role`
-  for purpose, accountabilities, domains, parent circle, and fillers. If
-  GlassFrog is not connected, ask the user which role/circle to treat as
-  domain holder rather than guessing.
+  with `include: ["parent_role"]` to confirm the match and get the role ID
+  and parent circle name. These identifiers are the only role data the
+  CLAUDE.md holds; the template's lookup directive tells each session to
+  read purpose, accountabilities, domains, and fillers live. If GlassFrog is
+  not connected, ask the user which role/circle to treat as domain holder
+  rather than guessing.
 - **fallback**: No live resolution — leave the domain-holder and
   essential-context blocks as open questions for the human.
 
