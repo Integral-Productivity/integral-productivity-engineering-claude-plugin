@@ -39,7 +39,8 @@ version: 0.1.0
   (role name, role ID, parent circle) plus the lookup directive from the
   template, so each session reads the role live from GlassFrog. A copy made
   at generation time goes stale on the next governance change, and stale
-  role text is worse than no template at all.
+  role text is worse than no template at all. See
+  [SAE-016](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-016-circle-drive-context-is-looked-up-live.md).
 - **Never write a Coach-facing artifact into a 👤 drive's Client-named
   folder.** A client drive is two audiences in one root: `_Internal/` is
   Coach-only, and the `<Client Name> – <Program>/` folder is shared with the
@@ -117,6 +118,7 @@ any "Working in this drive" bullets the human already added.
 ## Cross-references
 
 - Standard: [SAE-015: Google Shared Drive CLAUDE.md Standard by Drive Type](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md)
+- ◉ drive rule: [SAE-016: ◉ Circle/role drive context is looked up live, not copied](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-016-circle-drive-context-is-looked-up-live.md) (supersedes the ◉ overlay clause of SAE-015)
 - Sibling architecture: [SAE-004: Claude Code Context Architecture](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-004-claude-code-context-architecture.md) (git-repo tiers; this skill covers the Shared Drive root SAE-004 doesn't)
 - Coaching plugin invariants: [`integral-productivity-coaching-claude-plugin/CLAUDE.md`](https://github.com/Integral-Productivity/integral-productivity-coaching-claude-plugin/blob/main/CLAUDE.md)
 
