@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.10.0...v0.11.0) (2026-10-05)
+
+
+### Features
+
+* **skills:** add bootstrap-live-artifact ([#71](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/71)) ([6503dee](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/6503dee7a27e6aeba1b0caa2d74ac4a229c1b322))
+
 ## [0.10.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.9.0...v0.10.0) (2026-10-05)
 
 
