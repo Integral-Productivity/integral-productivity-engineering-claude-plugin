@@ -110,6 +110,13 @@ Routing runs in **every** IP repo, including those whose `triage-labels.md` does
 not mention the axis — SAE-009 put route authority in GlassFrog, not in any
 repo's doc.
 
+When the ask changes content of the repository itself, also read
+`devops-excellence/templates/repo-purview.json` (ADR-090) **before** matching. It
+says what the repository *is* — which class terms in the role text cover it, and
+which role holds it. This is not the repo-location argument; the reference
+explains the difference, the conditions, and why the first triage of
+glassfrog-mcp-server#255 was wrong without it.
+
 Then take exactly one branch, per that reference:
 
 - **Apply** — one role is clearly accountable. Create the label lazily from the
@@ -171,6 +178,9 @@ When an *enhancement* is rejected outright — never a bug — record it per
 - `Integral-Productivity/praxis/docs/adr/0116-routing-labels-name-glassfrog-roles-and-are-generated-not-authored.md`
   — the praxis adoption, the 50-character constraint, and the #1093 worked
   example this skill's inference is calibrated against.
+- `Integral-Productivity/devops-excellence/docs/adr/ADR-090-repository-purview-and-class-custom-properties.md`
+  — the purview table: which role holds each repository, and what class the
+  repository is. *Proposed* when this skill first used it (2026-10-05).
 - `Integral-Productivity/devops-excellence/docs/agents/agent-dispatch-claim-protocol.md`
   — the git-ref compare-and-swap claim primitive, org-wide. The lock label this
   skill must never touch is the one that protocol sets.
