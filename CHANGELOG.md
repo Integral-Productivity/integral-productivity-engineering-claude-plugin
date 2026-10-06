@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.12.0...v0.13.0) (2026-10-06)
+
+
+### Features
+
+* **bootstrap-live-artifact:** add the update-by-link rule and the error-source check ([#80](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/80)) ([0f154d1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/0f154d12feedb434114d0d86540c8c7d4e83e45b))
+
 ## [0.12.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.11.0...v0.12.0) (2026-10-06)
 
 
