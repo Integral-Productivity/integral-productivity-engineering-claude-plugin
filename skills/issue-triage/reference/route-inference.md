@@ -112,9 +112,101 @@ Three kinds of evidence, and they are not equal.
 correct. praxis#1093 read as engineering work purely because it lived in the praxis repo. If
 your reasoning contains "it's in this repo, so...", discard it and start over.
 
+What the repository *is* can be evidence, when the ask changes the repository's own content —
+but only through the purview table, under the conditions in the section below. That is a
+statement about the object, never about where the issue was filed.
+
 **Structural roles are rarely the answer.** `Secretary`, `Facilitator`, `Circle Lead`,
 `Circle Rep` (71 of the 137) own meeting and governance mechanics. Route to one only when the
 issue is genuinely about those mechanics — not because the work happens inside their circle.
+
+## When the ask changes the repository itself — the purview table
+
+Some role text names a *class* of thing and no instances. Product Engineering holds the domain
+*"Product source code"* and the accountability *"Managing the engineering lifecycle of digital
+products"*; Platform Operations is accountable for *"Resolving issues with platform
+components"*. GlassFrog does not say which repositories are products and which are platform
+components, and `role-context.json` cannot close that gap, because it is generated from
+GlassFrog.
+
+The instances are in a third file:
+
+```bash
+gh api repos/Integral-Productivity/devops-excellence/contents/templates/repo-purview.json \
+  --jq '.content' | base64 -d
+```
+
+`templates/repo-purview.json` (devops-excellence ADR-090) carries one row per repository:
+`repo`, `repo-class`, `purview`, `confidence`. `purview` is the holding role's slug — by design
+the same slug as that role's `handling:route:*` label. Read ADR-090 for what each `repo-class`
+means; do not copy the classes here.
+
+**This is not the repo-location argument, and the difference is the object.** "It's in this
+repo, so..." reasons from where the issue was *filed*. The row answers a narrower question:
+what the artifact the issue *changes* is, and which role holds it. So the row is evidence only
+when the object extracted in gate step 1 is content of this repository — its code, tests,
+docs, or configuration. praxis#1093 was filed in praxis and changes nothing in praxis. The row
+for praxis says nothing about it, and it still routes to Voice of the Customer.
+
+### What the row does
+
+When the object is repository content, read the row **before** step 2. It does three things
+and no more:
+
+1. **It resolves class terms in step 2, for every candidate, in both directions.** A row that
+   classes the repository as a product makes *"...digital products"* cover it, and makes
+   *"...platform components"* not cover it. A role can gain a match or lose one.
+2. **It resolves a class-level domain in step 3.** *"Product source code"* covers this
+   repository when the row's `purview` is that role.
+3. **It sets a floor.** A lifecycle accountability such as *"Managing the engineering lifecycle
+   of digital products"* covers nearly every change to a product repository, so on its own it
+   would contest every specific match and escalate everything. Do not read it that way. If
+   another role's accountability names the ask's verb specifically, that role is the match,
+   and the holding role is named in the comment as the domain holder who must consent. If no
+   role does, the holding role is accountable: **apply** it, and say that the route is the
+   holding role's floor rather than a specific match.
+
+The row supplies no verb and overrides no specific match. praxis#1292 still routes to Product
+Ops on *"Documenting product operational workflows, runbooks..."* even though the file it edits
+is product source.
+
+### Conditions
+
+- **Quote the row** in the comment — `repo-class`, `purview`, `confidence` — the way you quote
+  an accountability.
+- **Do not use a row that marks itself unsettled.** Measured 2026-10-05, the four rows read
+  carried `confidence: firm`. A row with a weaker value is one more candidate, not a
+  resolution.
+- **A repository with no row is a finding, not a default** (ADR-090). Say so, and run the gate
+  without the row.
+- **State ADR-090's status and the date you read it.** On 2026-10-05 the ADR was *Proposed* and
+  the table's header read "proposed, not yet applied". The table is a reviewed seeding
+  artifact, not a governance record: the purview domains it implies were not yet in GlassFrog.
+  A route that rests on it must say so, so the next reader knows to check again when the ADR is
+  accepted, amended, or rejected. If ADR-090 is rejected, delete this section.
+- **The fetch can fail.** Treat that like any missing evidence: run the gate without the row
+  and say which fetch failed and when. Do not guess the row from the repository's name —
+  ADR-090 refuses that inference for the same reason.
+
+### Calibration — the cases this section was written from
+
+All were first triaged on 2026-10-05 *without* the row and corrected the same day.
+
+| Case | Verb → object | Without the row | With the row |
+|---|---|---|---|
+| glassfrog-mcp-server#255 | *fix* → a filter in the server's own source | Platform Operations on *"Resolving issues with platform components"* — one match, exact quote, **applied** | The row classes the repository as a product: Platform Operations drops on **object**, Product Engineering holds the domain and the floor → **apply** Product Engineering |
+| reclaim-mcp-server#29 | *change* → the response contract of the server's tools | Not triaged without it | Same resolution → **apply** Product Engineering |
+| this repo #70, #73 | *add* a skill; *document* the component table | No accountability names plugins or skills → **escalated** | No specific match, the row names a holding role → **apply** Product Engineering as the floor |
+
+**#255 is the instructive one, because the first answer did not look wrong.** One role matched,
+the quote was exact, and the gate said apply. The error was upstream of the gate: the corpus
+lacked the fact that removes that match. That is why the row is read before step 2 and not
+after a tie.
+
+The four praxis cases in the regression set below were re-traced against this section by
+reasoning, not by triaging them again, and the praxis row was not read. #1093 is unaffected
+(its object is not repository content). #1292 is the one to watch: it holds only while rule 3
+is applied as written.
 
 ## Worked example — praxis#1093 (the known-answer case)
 
@@ -205,7 +297,8 @@ their circle" must never become a reason to route to a Secretary.
 | Exactly one role matched the verb | **Apply** |
 | Two or more roles matched the *same* verb | **Escalate** |
 | The ask carries two verbs owned by different roles | **Escalate** |
-| Verb extractable, but no accountability describes it | **Escalate** |
+| Verb extractable, no accountability names it, and a settled purview row names a holding role for the content the ask changes | **Apply** the holding role — see the purview section |
+| Verb extractable, no accountability describes it, and no purview row applies | **Escalate** |
 | No verb extractable | **Skip routing** — spec gap, feeds the state decision |
 | The evidence manifest cannot be read | **Degrade** |
 
