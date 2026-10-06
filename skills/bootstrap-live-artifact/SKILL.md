@@ -151,6 +151,40 @@ Tell the user, in the reply and not on the page:
 - what was not tested with real connectors, and the largest known risk
 - which functions of a legacy page did not carry over, and what replaced them
 
+## Updating a page that is already published
+
+Publish every update to the page's own link. Read the live page first, then publish
+with that link.
+
+Do not rely on the file path to find the page. In a session that continues from a
+summary of earlier work, a publish of the same file with no link makes a second
+artifact. On 2026-10-05 this made a duplicate page with the same title and no
+connector declaration, so it could not load data. The publish result said so: it
+gave a new link and a warning that the page uses a capability it does not declare.
+Read the publish result before you tell the user what changed.
+
+If a duplicate exists, tell the user. Delete it only when the user says so.
+
+## When the user reports an error on a live page
+
+Find which page printed the error before you change code. After a migration, the
+old sidebar artifact and the new published page have the same name, and the user
+can have either one open.
+
+1. Compare the exact error text with both page sources. On 2026-10-05 the report was
+   `Error: Unexpected token 'M', "MCP error "... is not valid JSON`. The legacy page
+   printed `Error: ` plus the message of a `JSON.parse` on the text of a tool call,
+   and its two tools no longer existed. The new page had no code path that printed
+   that text.
+2. Make the page's real read calls from a session, with the page's arguments. If the
+   connector answers, the calls are not the cause.
+3. Ask the user which page they had open, and what the new page shows after they
+   allow its connectors. Do not treat steps 1 and 2 as proof: they show where the
+   text can come from, not what the user saw.
+
+An error text that the new page cannot print is evidence that the page is not the
+source. It is not evidence that the page works.
+
 ## Migrating a legacy Cowork live artifact
 
 Read the staged HTML in full before any port. If it cannot be read, stop. Do not
