@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.11.0...v0.12.0) (2026-10-06)
+
+
+### Features
+
+* **issue-triage:** read the repository purview table before matching ([#76](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/76)) ([84647b4](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/84647b48735f4f039dd5b3b5d14aa3db3c0dad86))
+
 ## [0.11.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.10.0...v0.11.0) (2026-10-05)
 
 
