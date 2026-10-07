@@ -1,38 +1,25 @@
 ## Domain holder
 
-**Coaching** (GlassFrog role `role_50cd195cf63247a9b9ef2f8bb1d578b1`) is the
-domain holder for this drive.
-
-This file does not hold the role's purpose, parent circle, accountabilities,
-or domains. When the work depends on them, call `glassfrog_get_role` with
-that role ID and `include: ["parent_role"]`. If GlassFrog is not connected,
-ask the human. Do not guess.
+**Coaching** (GlassFrog role `role_50cd195cf63247a9b9ef2f8bb1d578b1`, within
+the Client Relations → Coaching line) is the domain holder for this drive.
+Purpose: "Provide service and support to customers who want hands-on
+support to become more integrally productive."
 
 ## Essential context
 
 This drive is scoped to one Client: **<CLIENT_NAME>**.
 
-- HubSpot Contact ID (the key Praxis uses for this Client): `<HUBSPOT_CONTACT_ID>`
-
-This file does not hold the Client's Engagement stage or any other Client
-state. That data changes, and this file is outside `_Internal/`. When the
-work needs Client data, look it up in Praxis:
-
-1. Call `praxis_get_client` with `hubspotContactId: <HUBSPOT_CONTACT_ID>` to
-   confirm the Client.
-2. Use the same ID as `clientId` for `praxis_list_encounters`,
-   `praxis_search`, and the other Praxis tools.
-3. If the ID does not resolve, tell the human that this CLAUDE.md needs
-   regeneration. Do not read HubSpot directly.
-
-If Praxis is not connected, stop the work that needs Client data and tell the
-human. Work that needs no Client data (for example, filing a document) can
-continue under the zone rules below.
+- Praxis Client record: <PRAXIS_CLIENT_ID_OR_RESOLVE_VIA_PRAXIS_SEARCH>
+- HubSpot contact (system of record, for cross-reference only): <HUBSPOT_CONTACT_URL>
+- Current Engagement stage: <ENGAGEMENT_STAGE>
 
 **Use Praxis, not HubSpot, to work with this Client's data.** The coaching
-plugin's "Praxis SDK is the only door" invariant applies here too: never call
-`mcp__hubspot__*` directly against this Client's contact record. The Contact
-ID above identifies the record. It is not permission to read HubSpot.
+plugin's "Praxis SDK is the only door" invariant applies here too: pull
+Client, Encounter, and Engagement context with `praxis_get_client`,
+`praxis_search`, `praxis_list_encounters` / `praxis_list_upcoming_encounters`,
+and related Praxis tools — never `mcp__hubspot__*` directly against this
+Client's contact record. The HubSpot link above identifies which record
+this is; it is not the interaction surface.
 
 Use Praxis Ubiquitous Language: **Client**, not "contact" or "co-learner";
 **Encounter**, not "session"; **Engagement**, not "deal" or "pipeline
@@ -50,10 +37,6 @@ stage" in prose.
 The Client-facing folder is named after the Client and holds their working
 documents, recordings, and reports. **It is theirs.** Do not put Coach
 artifacts there.
-
-If the Client-facing folder named above does not exist (for example, it was
-renamed), list the drive root, tell the human, and write to `_Internal/`
-until it is resolved.
 
 **Always `_Internal/`, no exceptions:**
 

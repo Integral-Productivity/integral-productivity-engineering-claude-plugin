@@ -32,14 +32,8 @@ version: 0.1.0
   data.** Per `integral-productivity-coaching-claude-plugin`'s "Praxis SDK
   is the only door" invariant, all Client/Encounter/Engagement data goes
   through the Praxis MCP tools (`praxis_get_client`, `praxis_search`,
-  `praxis_list_encounters`, etc.). The HubSpot Contact ID in the template
-  is the Praxis lookup key and is identification-only.
-- **Never write Client state or the Coaching role's text into a 👤 drive's
-  CLAUDE.md.** Write only the identifiers (Client display name, HubSpot
-  Contact ID, Coaching role name and ID) and the drive policy from the
-  template. Do not write an Engagement stage: no Praxis tool the generator
-  may use returns one, and the file is outside `_Internal/`. See
-  [SAE-017](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-017-client-drive-context-is-looked-up-live.md).
+  `praxis_list_encounters`, etc.). The HubSpot contact link in the template
+  is identification-only.
 - **Never write a GlassFrog role's purpose, accountabilities, domains, or
   fillers into a ◉ drive's CLAUDE.md.** Write only the stable identifiers
   (role name, role ID, parent circle) plus the lookup directive from the
@@ -78,14 +72,12 @@ name as seen in the Cowork project). Match the leading character:
 
 ### Step 2 — Resolve essential context live
 
-- **client**: Call `praxis_list_clients` (page through the roster) and
-  match the drive's `<Name>` against each Client's first and last name.
-  `praxis_search` cannot do this: it needs a `clientId` and searches inside
-  one Client's lineage. If more than one Client matches, or none does, ask
-  the user. Call `praxis_get_client` with the matched `hubspotContactId` to
-  confirm. That ID and the Client's display name are the only Client data
-  the CLAUDE.md holds. If Praxis is not connected, stop and tell the user —
-  do not fall back to `mcp__hubspot__*`.
+- **client**: Call `praxis_search` (or `praxis_list_clients`) with the
+  drive's `<Name>` to find the matching Praxis Client. Call
+  `praxis_get_client` for full detail. If a HubSpot contact link is
+  available from the Praxis record, include it as identification-only. If
+  Praxis is not connected, stop and tell the user — do not fall back to
+  `mcp__hubspot__*`.
 - **circle-role**: Call `glassfrog_search` (or `glassfrog_list_roles`) with
   the drive's `<Name>` to find the matching role. Call `glassfrog_get_role`
   with `include: ["parent_role"]` to confirm the match and get the role ID
@@ -127,7 +119,6 @@ any "Working in this drive" bullets the human already added.
 
 - Standard: [SAE-015: Google Shared Drive CLAUDE.md Standard by Drive Type](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md)
 - ◉ drive rule: [SAE-016: ◉ Circle/role drive context is looked up live, not copied](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-016-circle-drive-context-is-looked-up-live.md) (supersedes the ◉ overlay clause of SAE-015)
-- 👤 drive rule: [SAE-017: 👤 Client drive context is looked up live, not copied](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-017-client-drive-context-is-looked-up-live.md) (supersedes the 👤 overlay clause of SAE-015 as far as it copies Client state and role text)
 - Sibling architecture: [SAE-004: Claude Code Context Architecture](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-004-claude-code-context-architecture.md) (git-repo tiers; this skill covers the Shared Drive root SAE-004 doesn't)
 - Coaching plugin invariants: [`integral-productivity-coaching-claude-plugin/CLAUDE.md`](https://github.com/Integral-Productivity/integral-productivity-coaching-claude-plugin/blob/main/CLAUDE.md)
 
