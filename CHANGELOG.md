@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.13.0...v0.14.0) (2026-10-07)
+
+
+### Features
+
+* **bootstrap-shared-drive:** 👤 template looks up Client and role context live ([#82](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/82)) ([f94bb7f](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/f94bb7f72a9bfd3b452f69c8140a43b7d7e3b0f2))
+
 ## [0.13.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.12.0...v0.13.0) (2026-10-06)
 
 
