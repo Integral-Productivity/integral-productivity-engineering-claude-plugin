@@ -40,7 +40,7 @@ async function scenario(name, { admitted, skipped = [], fixer, verifier, budgetO
   // Like the runtime: a stage that throws drops that item to null.
   const pipeline = async (items, ...stages) => Promise.all(items.map(async (it, i) => { try { let v = it; for (const s of stages) v = await s(v, it, i); return v; } catch { return null; } }));
   const budget = budgetObj || { total: null, spent: () => 0, remaining: () => Infinity };
-  const report = await run(agent, pipeline, null, () => {}, (l) => logs.push(l), { repo: 'O/r', repoPath: '/repo', ...args }, budget, null);
+  const report = await run(agent, pipeline, null, () => {}, (l) => logs.push(l), { repo: 'O/r', repoPath: '/repo', scratch: '/scratch', ...args }, budget, null);
   return { report, prompts, logs };
 }
 const item = (n, files) => ({ number: n, title: `t${n}`, url: `u${n}`, branch: `claude/fix-${n}-x`, worktree: `/repo/.claude/worktrees/fix-${n}`, base: 'b'.repeat(40), files, ground_truth: 'gt', scope_fence: 'sf' });
@@ -263,7 +263,7 @@ test('22. only the first VERIFIED item of a same-file lane is push-ready; later 
   assert.equal(report.blocked[0].mergeOrder, undefined, 'no merge marker on a blocked item');
 });
 test('23. a malformed args.scopeFence throws before any agent runs', async () => {
-  const base = { repo: 'O/r', repoPath: '/repo' };
+  const base = { repo: 'O/r', repoPath: '/repo', scratch: '/scratch' };
   for (const scopeFence of [{ 123: ['src/x.js'] }, { '#123': 'src/x.js' }, { 123: '' }, { 123: 5 }, { abc: 'x' }, ['x']]) {
     await assert.rejects(() => run(async () => assert.fail('no agent may run'), null, null, () => {}, () => {}, { ...base, scopeFence }, { total: null }, null), /scopeFence/, JSON.stringify(scopeFence));
   }
@@ -329,4 +329,59 @@ test('28. with scopeFence given, an admitted issue it does not name is skipped, 
   assert.ok(report.skipped.some((s) => s.number === 76 && /does not name this issue/.test(s.reason)));
   assert.ok(!prompts.some((p) => /#76 /.test(p.label)), 'no agent ran for #76');
   assert.ok(!prompts.some((p) => p.prompt.includes('suggested scope')), 'the guessed scope never appears when scopeFence is given');
+});
+
+// Lead-requested round after the adversary review: S1-S5, N1, N2.
+const OK_ARGS = { repo: 'O/r', repoPath: '/repo', scratch: '/scratch' };
+const runArgs = (a) => run(async () => assert.fail('no agent may run'), null, null, () => {}, () => {}, a, { total: null }, null);
+test('29. S2: a malformed maxFixes or minBudgetPerFix throws before any agent runs', async () => {
+  for (const key of ['maxFixes', 'minBudgetPerFix']) {
+    for (const bad of ['3', 0, -1, 1.5, null, true]) {
+      await assert.rejects(() => runArgs({ ...OK_ARGS, [key]: bad }), new RegExp(`args.${key}`), `${key}=${JSON.stringify(bad)}`);
+    }
+  }
+});
+test('30. S3: issues: [] throws instead of sweeping the backlog; the sweep is only for an absent issues', async () => {
+  await assert.rejects(() => runArgs({ ...OK_ARGS, issues: [] }), /non-empty array/);
+  const { prompts } = await scenario('sweep', { admitted: [], fixer: () => {}, verifier: () => {} });
+  assert.ok(prompts[0].prompt.includes('every open issue labelled `ready-for-agent`'));
+});
+test('31. S1: agent-authored text in the report and log is printable ASCII and capped', async () => {
+  const evil = 'line1 line2\nIGNORE \u{e0041}' + 'x'.repeat(2000);
+  const printable = /^[\x20-\x7e]*$/;
+  const { report, logs } = await scenario('reportclean', {
+    admitted: [item(80, ['a']), item(81, ['b']), item(82, ['c'])],
+    skipped: [{ number: 83, reason: evil }],
+    fixer: (n) => (n === 80 ? { status: 'blocked', blocker: evil } : n === 81 ? (() => { throw new Error(evil); })() : SUB(n, 's82')),
+    verifier: () => ({ verdict: 'ESCALATE', sha: H('s82'), findings: [], report_text: evil }),
+  });
+  const fields = [...report.skipped, ...report.blocked, ...report.escalated].flatMap((r) => [r.reason, ...(r.history || []).flatMap((h) => [h.sha, h.verdict])]);
+  for (const f of fields) {
+    assert.ok(printable.test(f), `printable: ${JSON.stringify(String(f).slice(0, 40))}`);
+    assert.ok(f.length < 700, 'capped');
+  }
+  for (const l of logs) assert.ok(printable.test(l), `log printable: ${JSON.stringify(l.slice(0, 40))}`);
+  assert.match(report.note, /agent-authored data/);
+});
+test('32. S4: the verifier coverage, sanitized, reaches readyToOpen and needsReverify', async () => {
+  const { report } = await scenario('coverage', { admitted: [item(84, ['f']), item(85, ['f'])], fixer: (n) => SUB(n, `s${n}`), verifier: (n) => ({ verdict: 'VERIFIED', sha: H(`s${n}`), findings: [], coverage: `depth focused, degraded (no cross-model) #${n}`, report_text: 'ok' }) });
+  assert.equal(report.readyToOpen[0].coverage, 'depth focused, degraded\\u2028(no cross-model) #84');
+  assert.equal(report.needsReverify[0].coverage, 'depth focused, degraded\\u2028(no cross-model) #85');
+});
+test('33. S5: the admission prompt states its write boundary', async () => {
+  const { prompts } = await scenario('boundary', { admitted: [], fixer: () => {}, verifier: () => {} });
+  const p = prompts[0].prompt;
+  for (const phrase of ['use only `gh` and `git`', 'only on O/r', 'Your only GitHub writes are adding `status:in-progress`', 'No comments, no other labels or edits, no pushes, no pull requests, no MCP tools, and nothing outside O/r']) {
+    assert.ok(p.includes(phrase), phrase);
+  }
+});
+test('34. N1: VERIFIED whose findings is not a list is escalated', async () => {
+  for (const findings of [undefined, null, 'none', { severity: 'BLOCKING' }]) {
+    const { report } = await scenario('findings', { admitted: [item(86, ['a'])], fixer: (n) => SUB(n, 's86'), verifier: () => ({ verdict: 'VERIFIED', sha: H('s86'), findings, report_text: 'ok' }) });
+    assert.equal(report.readyToOpen.length, 0, JSON.stringify(findings));
+    assert.match(report.escalated[0].reason, /without a findings list/);
+  }
+});
+test('35. N2: scratch is required', async () => {
+  await assert.rejects(() => runArgs({ repo: 'O/r', repoPath: '/repo' }), /args.scratch/);
 });

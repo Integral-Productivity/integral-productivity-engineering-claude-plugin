@@ -54,11 +54,15 @@ Workflow({
 })
 ```
 
-`args` is an object, not a JSON string. `repo` and `repoPath` are required.
+`args` is an object, not a JSON string. `repo`, `repoPath` and `scratch` are
+required.
 `repo` must look like `Owner/name`; `repoPath`, `worktreeRoot` and `scratch`
 must be absolute paths of letters, digits, `.`, `_`, `-` and `/` only, with no
-`..` (no spaces); `issues` must be positive integers. Anything else stops the
-workflow before an agent runs.
+`..` (no spaces); `issues`, when present, must be a non-empty list of
+positive integers (`[]` is an error, not a request to sweep the backlog);
+`maxFixes` and `minBudgetPerFix`, when present, must be positive integers,
+never silently defaulted. Anything else stops the workflow before an agent
+runs.
 Without `issues`, it considers every open `ready-for-agent` issue, oldest
 first. `maxFixes` defaults to 3. When the turn has a `+Nk` token budget, the
 budget is checked before every round: a fix with less than `minBudgetPerFix`
@@ -78,7 +82,11 @@ that matches no admitted issue is logged as unused.
 
 ## What it does
 
-1. **Admit.** One agent reads each candidate and skips it unless it is open
+1. **Admit.** One agent reads each candidate. Its prompt sets a boundary: `gh`
+   and `git` only, only on `repo`. Its only GitHub writes are adding
+   `status:in-progress` to a candidate it admits and removing a label it
+   added. No comments, other labels, pushes, pull requests or MCP tools. It
+   skips a candidate unless it is open
    and labelled `ready-for-agent`. It also skips an already-claimed one
    (`status:in-progress`, or an open PR referencing it). It claims the rest
    with the label, up to the cap, and records every skip with its reason. For
@@ -120,7 +128,13 @@ that matches no admitted issue is logged as unused.
    and `skipped`, each with its reason and
    SHA where there is one. An error on one item, such as an agent failure or
    an exhausted budget, is recorded as blocked for that item; items that
-   already finished in the same lane keep their results.
+   already finished in the same lane keep their results. `readyToOpen` and
+   `needsReverify` also carry the verifier's `coverage`, so a degraded review
+   is visible before anything is pushed. Every reason, coverage and history
+   field is agent-authored. In the report and in log lines it is shown through
+   the same printable-ASCII allowlist, with other characters as `\u` escapes
+   and anything over 500 characters truncated, and `report.note` says to read
+   it as data.
 
 ## Fail-closed and injection rules
 
@@ -247,6 +261,16 @@ Its scenarios:
     admitted reported once, as skipped
 28. with `scopeFence` given, an admitted issue it does not name skipped, with
     no agent run and no guessed scope
+29. malformed `maxFixes` or `minBudgetPerFix` (a string, 0, negative,
+    non-integer, null, a boolean) throwing before any agent runs
+30. `issues: []` throwing; the backlog sweep only when `issues` is absent
+31. agent-authored text, including separators, tag characters and 2,000
+    characters, reaching the report and log only as capped printable ASCII,
+    with the note saying it is agent-authored
+32. the verifier's coverage, sanitized, in `readyToOpen` and `needsReverify`
+33. the admission prompt's write boundary
+34. VERIFIED with a `findings` that is not a list escalated
+35. `scratch` required
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -287,6 +311,10 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   `needsReverify` dropped from the report
 - each `scopeFence` check removed, and the unused-key log removed
 - the relayed-key filter removed
+- for the adversary round: bad numeric args defaulted instead of throwing;
+  `issues: []` allowed; report text left raw; no length cap; the note
+  dropped; coverage missing or unsanitized; the admission boundary removed;
+  a non-list `findings` accepted; `scratch` optional
 - the allowlist swapped back to the old list of known characters, which
   fails all four class tests; the ASCII `<`/`>` escape dropped
 - the SHAs left untrimmed; the rejected-first duplicate check removed; the
