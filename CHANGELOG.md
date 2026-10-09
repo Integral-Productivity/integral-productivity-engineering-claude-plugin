@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.15.0...v0.15.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **agents:** harden fixer/verifier egress, cleanup, references and pre-egress scan ([#107](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/107)) ([5fee481](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/5fee4815c814f14df2118d3c4e0ff7e0637bbf1b))
+
 ## [0.15.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.14.1...v0.15.0) (2026-10-09)
 
 
