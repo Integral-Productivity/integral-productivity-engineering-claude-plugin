@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Engineering practice for Integral Productivity, packaged as a Claude Code plugin. Contains the cold-start router (`devops-excellence-cold-start`) plus the work-type scaffolding skills (`bootstrap-mcp-server`, `bootstrap-private-sdk`) that the router delegates to, and `writing-dispatch-prompts`, the contract for handing a unit of work to another agent session.
+Engineering practice for Integral Productivity, packaged as a Claude Code plugin. Contains the cold-start router (`devops-excellence-cold-start`) plus the work-type scaffolding skills (`bootstrap-mcp-server`, `bootstrap-private-sdk`) that the router delegates to, `writing-dispatch-prompts`, the contract for handing a unit of work to another agent session, and the `fixer` and `verifier` agent profiles that require the compound-engineering toolchain (`ce-work` in Return-to-Caller Mode, `ce-code-review`) for each fix on an agent team.
 
 This plugin is the agent-side companion to [`devops-excellence`](https://github.com/Integral-Productivity/devops-excellence). The standard lives there; the orchestration that helps agents reach for it lives here.
 
@@ -30,6 +30,7 @@ Conventional Commits: `feat:`, `fix:`, `chore(scope):`, `docs:`, `ci:`
 skills/<skill-name>/SKILL.md        # One directory per skill
 skills/<skill-name>/reference/...   # Reference files bundled with the skill
 commands/<command>.md               # Slash commands
+agents/<agent>.md                   # Agent profiles (auto-discovered; spawn as integral-productivity-engineering:<agent>)
 ```
 
 ## Repo conventions specific to this plugin
