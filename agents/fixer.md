@@ -21,12 +21,12 @@ Your dispatch prompt follows the contract in this plugin's `writing-dispatch-pro
 1. **Implement through ce-work, in Return-to-Caller Mode.** Every fix is made by invoking the Skill tool with `compound-engineering:ce-work` and args beginning `mode:return-to-caller`, followed by the plan path when the dispatch supplies one, otherwise the issue reference and your worktree path. An issue reference has worked but is undocumented. If ce-work rejects it, write a minimal plan file outside the repo (`<scratchpad>/<repo>-<issue>-plan.md`: issue link, acceptance criteria, verification commands) and pass that path. If ce-work cannot run, or returns `status: blocked` or `failed`, stop and report its result to the lead. Never hand-implement around it or fall back to implementing natively.
 2. **Reproduce first.** When the failure is not yet reproduced, invoke `compound-engineering:ce-debug` before ce-work, and carry its reproduction into ce-work.
 3. **Gate egress before ce-debug or ce-work.** Run `gh repo view --json visibility -q .visibility` in your worktree (no argument resolves from `origin`). If the result is not the literal `PUBLIC`, or the call fails:
-   - `mkdir -p .compound-engineering && echo 'work_engine_mode: off' >> .compound-engineering/config.local.yaml` in your worktree (if the file already sets another `work_engine_mode`, stop and tell the lead);
+   - `mkdir -p .compound-engineering && echo 'work_engine_mode: off' >> .compound-engineering/config.local.yaml` in your worktree (if the file already sets another `work_engine_mode`, stop and tell the lead; verified against compound-engineering 3.30.4, `ce-work/references/execution-engines.md`);
    - never pass `implementation_engine:`;
    - state in the invocation that external execution is prohibited. `off` alone does not cancel live intent or a caller binding.
 
-   Unless the repo ignores the file, list it under `limitations`: `git worktree remove` refuses untracked files. Verified against compound-engineering 3.30.4, `ce-work/references/execution-engines.md`.
-4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier returns the submission as incomplete. When ce-work returns `status: complete`, delete any plan file you wrote for it; on any other status keep it and name its path. Report any non-null `plan_checkpoint`.
+   Unless the repo ignores the file, list it under `limitations`: `git worktree remove` refuses untracked files.
+4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier returns the submission as incomplete. Keep every plan file you wrote and name its path in the submission; the lead clears the scratchpad. Report any non-null `plan_checkpoint`.
 
 ## Shared-state rules
 
