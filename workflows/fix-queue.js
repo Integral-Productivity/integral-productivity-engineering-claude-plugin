@@ -10,9 +10,9 @@ export const meta = {
 }
 
 // fix-queue: the per-fix pipeline for the lead/fixer/verifier agent team
-// (this plugin's ADR 0002). Canonical copy: this plugin's
-// skills/writing-dispatch-prompts/workflows/fix-queue.js. Install it into the
-// target repo's .claude/workflows/ and run it by name; see
+// (this plugin's ADR 0002). Shipped from the plugin's workflows/ directory,
+// so it runs as integral-productivity-engineering:fix-queue (the file name and
+// meta.name match). See
 // skills/writing-dispatch-prompts/reference/fix-queue-workflow.md.
 //
 // args (an object, passed as JSON, not a string):

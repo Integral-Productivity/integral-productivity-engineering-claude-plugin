@@ -1,34 +1,34 @@
 # The fix-queue workflow
 
-`workflows/fix-queue.js` in this skill is a saved Claude Code Workflow that runs
-the lead/fixer/verifier pattern from this plugin's ADR 0002 as fixed steps, so
-none of them depends on the lead remembering it (issue #90).
+`workflows/fix-queue.js` at this plugin's root is a saved Claude Code Workflow
+that runs the lead/fixer/verifier pattern from this plugin's ADR 0002 as fixed
+steps, so none of them depends on the lead remembering it (issue #90).
 
-## Where it has to live (finding, 2026-10-09)
+## Where it lives (finding, 2026-10-09)
 
-The Workflow tool resolves `Workflow({name: ...})` from built-in workflows and
-from `.claude/workflows/`. Its own schema describes `name` as "Name of a
-predefined workflow (built-in or from .claude/workflows/)". Nothing in the tool
-or the plugin docs says a plugin can ship a named workflow, so this plugin
-treats that as unsupported. The canonical script lives here, and a repo that
-wants it installs a copy:
+Plugins can ship named workflows. From
+<https://code.claude.com/docs/en/workflows.md>, "Distribute a workflow in a
+plugin": "Place the script in a `workflows/` directory at the plugin root, or
+point to a different location with the `workflows` manifest field. Plugin
+workflows are namespaced by the plugin name. A plugin called `acme-tools`
+containing a script whose `meta.name` is `release-audit` runs as
+`/acme-tools:release-audit`."
 
-```bash
-mkdir -p <repo>/.claude/workflows && cp "<this skill's base directory>/workflows/fix-queue.js" <repo>/.claude/workflows/fix-queue.js
-```
-
-Copy rather than symlink: the plugin's install path changes with every
-version, so a symlink into the plugin cache breaks on the next update. Copying
-the newer file again picks up changes. A user-level `~/.claude/workflows/` is
-likely resolved the same way; that has not been confirmed.
+So this one runs as `integral-productivity-engineering:fix-queue` with nothing
+to install beyond the plugin itself. The same page puts project workflows in
+`.claude/workflows/` and personal ones in `~/.claude/workflows/`, both `.js`.
+It does not say whether the file name must match `meta.name`, so they match
+here (`fix-queue.js`, `meta.name: 'fix-queue'`). After the plugin updates, run
+`/reload-skills` (or start a new session) so the new version is read.
 
 ## Running it
 
-From a session whose working directory is the target repo:
+From a session whose working directory is the target repo, with this plugin
+installed:
 
 ```text
 Workflow({
-  name: "fix-queue",
+  name: "integral-productivity-engineering:fix-queue",
   args: {
     repo: "Integral-Productivity/<repo>",
     repoPath: "/absolute/path/to/<repo>",
