@@ -1,0 +1,23 @@
+.gitignore
+  s_c5f1c0cd0a4cf3::t_cd39ad794edca9 7
+agents/fixer.md
+  s_c5f1c0cd0a4cf3::t_7209e70bcaa009 15-17,29,45,47,52,84,95
+skills/writing-dispatch-prompts/reference/guard-code-precedents.md
+  s_c5f1c0cd0a4cf3::t_700a5a58e454c4 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c501443a3596c705193504da7e3407c1e6f1cdd4",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
