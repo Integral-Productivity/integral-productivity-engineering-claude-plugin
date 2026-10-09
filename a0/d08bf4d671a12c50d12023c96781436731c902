@@ -1,0 +1,26 @@
+agents/verifier.md
+  s_d29ad8576bb71f::t_ab5ca268a6bc9c 69
+  s_d29ad8576bb71f::t_6d0c8ce249c8e9 1-68
+agents/fixer.md
+  s_d29ad8576bb71f::t_0e01e0b83780cc 1-68
+CLAUDE.md
+  s_d29ad8576bb71f::t_7a925258c40a71 5,33
+README.md
+  s_d29ad8576bb71f::t_2dc3a23f64345d 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a0d08bf4d671a12c50d12023c96781436731c902",
+  "prompts": {},
+  "sessions": {
+    "s_d29ad8576bb71f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "09bb5cc6-b507-449d-9506-752e4c375e47",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
