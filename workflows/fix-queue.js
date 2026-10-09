@@ -71,10 +71,29 @@ const WT_ROOT = A.worktreeRoot || `${A.repoPath}/.claude/worktrees`
 const FIXER = 'integral-productivity-engineering:fixer'
 const VERIFIER = 'integral-productivity-engineering:verifier'
 
-// Fields every fixer submission must carry (reference/fixer-submission.md).
-// The verifier's dispatch is built from these, never written by hand.
-const REQUIRED = ['issue', 'branch', 'worktree', 'sha', 'base', 'verified_tree', 'ce_work_result',
-  'files_and_counts', 'verification', 'tests', 'plan_files', 'acceptance_criteria', 'egress_control', 'limitations', 'submission_text']
+// The one list of submission fields (reference/fixer-submission.md). The
+// schema and the required-field gate are both built from it; the verifier's
+// dispatch relays every key the fixer returns, never a hand-written copy.
+const SUBMISSION_FIELDS = [
+  ['issue', true],
+  ['branch', true],
+  ['worktree', true],
+  ['sha', true],
+  ['base', true],
+  ['verified_tree', true],
+  ['files_and_counts', true],
+  ['verification', true],
+  ['tests', true],
+  ['ce_work_result', true, 'every return-to-caller block covering this submission, verbatim'],
+  ['plan_files', true],
+  ['acceptance_criteria', true],
+  ['guard_changes', false],
+  ['egress_control', true],
+  ['limitations', true],
+  ['findings_addressed', false, 'on a rework round: each finding with the commit that addresses it'],
+  ['submission_text', true, 'the whole submission in the reference/fixer-submission.md format'],
+]
+const REQUIRED = SUBMISSION_FIELDS.filter(([, required]) => required).map(([key]) => key)
 
 const ADMIT_SCHEMA = {
   type: 'object',
@@ -109,28 +128,14 @@ const ADMIT_SCHEMA = {
   required: ['admitted', 'skipped'],
 }
 
+// `required` holds only `status`: a blocked return legitimately lacks the
+// rest. missingFields() is the gate for a submitted one.
 const SUBMISSION_SCHEMA = {
   type: 'object',
   properties: {
     status: { type: 'string', enum: ['submitted', 'blocked'] },
     blocker: { type: 'string', description: 'when blocked: what stopped you, the SHA, uncommitted files, next step' },
-    issue: { type: 'string' },
-    branch: { type: 'string' },
-    worktree: { type: 'string' },
-    sha: { type: 'string' },
-    base: { type: 'string' },
-    verified_tree: { type: 'string' },
-    files_and_counts: { type: 'string' },
-    verification: { type: 'string' },
-    tests: { type: 'string' },
-    ce_work_result: { type: 'string', description: 'every return-to-caller block covering this submission, verbatim' },
-    plan_files: { type: 'string' },
-    acceptance_criteria: { type: 'string' },
-    guard_changes: { type: 'string' },
-    egress_control: { type: 'string' },
-    limitations: { type: 'string' },
-    findings_addressed: { type: 'string', description: 'on a rework round: each finding with the commit that addresses it' },
-    submission_text: { type: 'string', description: 'the whole submission in the reference/fixer-submission.md format' },
+    ...Object.fromEntries(SUBMISSION_FIELDS.map(([key, , description]) => [key, description ? { type: 'string', description } : { type: 'string' }])),
   },
   required: ['status'],
 }
@@ -299,9 +304,9 @@ Verdict: do NOT use SendMessage. Your final output IS your verdict: \`verdict\` 
 function missingFields(submission, item) {
   const missing = REQUIRED.filter((key) => typeof submission[key] !== 'string' || submission[key].trim() === '')
   for (const key of ['sha', 'base', 'verified_tree']) {
-    if (!missing.includes(key) && !HEX40.test(submission[key].trim())) missing.push(`${key} (not a full 40-character hex id)`)
+    if (!missing.includes(key) && !(typeof submission[key] === 'string' && HEX40.test(submission[key].trim()))) missing.push(`${key} (not a full 40-character hex id)`)
   }
-  if (!missing.some((m) => m.startsWith('base')) && submission.base.trim() !== item.base) missing.push(`base (not ${item.base}, the base it was cut from)`)
+  if (!missing.some((m) => m.startsWith('base')) && String(submission.base).trim() !== item.base) missing.push(`base (not ${item.base}, the base it was cut from)`)
   return missing
 }
 

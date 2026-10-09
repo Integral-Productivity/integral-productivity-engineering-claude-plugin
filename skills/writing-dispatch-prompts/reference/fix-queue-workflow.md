@@ -153,14 +153,16 @@ or carry forward.
 
 ## Static validation (2026-10-09)
 
-The script was not run against GitHub. A stub harness ran its body with fake
-`agent()`, `pipeline()` and `budget`. It checked:
+The script was not run against GitHub. `tools/fix-queue.test.mjs` runs its body
+with fake `agent()`, `pipeline()` and `budget` (`node --test tools/*.test.mjs`;
+set `FIX_QUEUE_SCRIPT` to test another copy, as a mutation check does). It
+checks:
 
 - the meta is a pure literal
 - every phase title used matches `meta.phases`
 - none of the forbidden calls (`Date.now`, `Math.random`, `new Date()`, Node APIs) appear
 
-It ran 14 scenarios:
+Its scenarios:
 
 1. VERIFIED, with every submission field relayed into the verifier's dispatch
 2. REWORK, then VERIFIED
@@ -183,11 +185,13 @@ It ran 14 scenarios:
 14. the lead's scope fence winning over the admission guess; the guess shown
     as advisory; an unlisted returned field still relayed; the main checkout
     in the header; a merged lane keeping admission order
+15. a submission missing any one of the 15 required fields, each in turn,
+    never reaching the verifier, with the rework prompt naming the field
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
 
-Twenty-three mutants were each killed. Each was checked to load and to fail on an assertion, not on a syntax error:
+Each mutant below was checked to load and to fail on an assertion, not on a syntax error, and each was killed:
 
 - a third rework round allowed
 - the missing-field check removed
@@ -212,5 +216,8 @@ Twenty-three mutants were each killed. Each was checked to load and to fail on a
 - only a fixed field list relayed
 - lane order reversed
 - the main checkout dropped from the header
+- each of the 15 submission fields made optional. The checks for `sha`,
+  `base` and `verified_tree` are equivalent mutants: a missing value still
+  fails their 40-character hex check, so behavior does not change
 
 The first real run is the lead's one-issue acceptance run.
