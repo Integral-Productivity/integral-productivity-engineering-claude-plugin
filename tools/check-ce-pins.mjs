@@ -11,11 +11,12 @@
 // Claude Code resolves CE per scope from ~/.claude/plugins/installed_plugins.json,
 // so the default checks every registered installPath, not just the newest one
 // cached. When the registry cannot be read it falls back to the newest cached
-// version and says so.
+// version and says so, except with --project, where it exits 2 instead.
 //
 // Exit 0: every pin holds in every install checked. Exit 1: a pin is missing
 // somewhere; re-verify the profile rule it backs before trusting it there.
-// Exit 2: bad arguments, or no CE install was found, so nothing was verified.
+// Exit 2: bad arguments, no CE install was found, or --project was given and
+// the registry could not be read, so nothing was verified.
 // Each pin's `text` is an exact substring of the named file in CE 3.30.4.
 
 import { readFileSync, readdirSync, existsSync, realpathSync } from 'node:fs';
