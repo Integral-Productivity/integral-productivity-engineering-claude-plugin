@@ -135,11 +135,15 @@ base directory:
 
 - [`reference/fixer-submission.md`](reference/fixer-submission.md): the
   fields a fixer's submission must carry, which the verifier checks.
+- [`reference/verifier-verdict.md`](reference/verifier-verdict.md): the
+  fields a verifier's verdict carries.
 - [`reference/guard-code-precedents.md`](reference/guard-code-precedents.md):
   past lead rulings on guard inputs. The one copy; neither profile repeats it.
 - [`reference/ce-config-pins.md`](reference/ce-config-pins.md): the
   compound-engineering text each egress control rests on, how to re-check it
-  after an upgrade, and the egress decisions taken with it.
+  after an upgrade, and the egress decisions taken with it, including the
+  verifier's secret scan and its config,
+  [`reference/gitleaks.toml`](reference/gitleaks.toml).
 
 ## Common mistakes
 

@@ -24,13 +24,20 @@ Paths are relative to the CE plugin's `skills/` directory.
 ## Re-checking after a CE upgrade (issue #93, item 3)
 
 Decision: build a mechanism, run by hand. `node tools/check-ce-pins.mjs` (from
-this plugin's repo root) checks every row above as an exact substring of the
-newest installed CE version, or of `--skills-dir <path>`. Exit 1 names each
-pin that no longer holds and the profile rule it backs; exit 2 means no CE
-install was found and nothing was verified. It is not wired into CI, because
-CI has no installed CE to read. Whoever bumps CE runs it before trusting the
-profiles again; until it passes, treat every non-`PUBLIC` run as unprotected
-and stop.
+this plugin's repo root) checks every row above as an exact substring of each
+CE install Claude Code has registered in `~/.claude/plugins/installed_plugins.json`
+(CE resolves per scope, so several versions can run on one machine);
+`--project <path>` limits it to the installs one project resolves, and
+`--skills-dir <path>` checks one directory. Exit 1 names each pin that no
+longer holds, the install it failed in, and the profile rule it backs. Exit 2
+means bad arguments or no install found: nothing was verified. Without a
+readable registry it checks only the newest cached version and prints a
+NOTICE saying so. The wording pins are exact, so an older CE that still reads
+a key in different words also reports it missing; re-verify the rule there by
+reading that version's source. It is not wired into CI, because CI has no
+installed CE to read. Whoever bumps CE runs it before trusting the profiles
+again; where it fails for a project, treat that project's non-`PUBLIC` runs as
+unprotected and stop.
 
 ## External engine and out-of-repo plans (issue #93, criterion 12)
 
@@ -51,10 +58,29 @@ plan-only checkpoint, and it is left behind untracked.
 
 Decision: adopted, in the verifier. On a `PUBLIC` repo a cross-model review
 sends an unpushed branch to another provider before GitHub's secret scanning
-sees it. Before ce-code-review the verifier runs
-`gitleaks git --log-opts "<base>..<sha>" --no-banner --redact .` in its review
-worktree. Any finding, a missing `gitleaks`, or a failed run turns the
-cross-model pass off for that review, exactly as for a private repo, and a
-finding is also BLOCKING and reported to the lead. The fixer does not scan:
-its external-engine route is off whenever a repo is not `PUBLIC`, and its
-native route sends nothing to another provider.
+sees it. Before ce-code-review, the verifier runs this in its review worktree,
+with `<base>` the base it verified in check 1 (never one taken only from the
+submission), `<ref>` this skill's base directory, and `<empty>` a new, empty
+directory under its scratch directory:
+
+```bash
+git diff --name-only <base>..<sha> | grep -E '(^|/)\.gitleaks(\.toml|ignore)$'
+env -u GITLEAKS_CONFIG -u GITLEAKS_CONFIG_TOML gitleaks git \
+  --config <ref>/reference/gitleaks.toml --gitleaks-ignore-path <empty> \
+  --ignore-gitleaks-allow --log-opts "<base>..<sha>" --no-banner --redact .
+```
+
+The verifier-owned `gitleaks.toml` extends the default rules, and the flags
+stop the branch from suppressing them: gitleaks would otherwise honor the
+branch's own `.gitleaks.toml`, `.gitleaksignore`, inline `gitleaks:allow` and
+`GITLEAKS_CONFIG`. Verified 2026-10-09 with gitleaks 8.30.1 on a throwaway
+repo holding two real-format keys, one marked `gitleaks:allow`, plus an
+allow-all `.gitleaks.toml` and a `*` `.gitleaksignore`: the plain command
+reported no leaks (exit 0); this command reported both (exit 1).
+
+The cross-model pass is turned off, exactly as for a private repo, when the
+first command prints anything (the range changes a gitleaks suppression
+file), the scan finds a leak, `gitleaks` is missing, the scan fails, or check 1
+(identity) failed. A finding is also BLOCKING and reported to the lead at once.
+The fixer does not scan: its external-engine route is off whenever a repo is
+not `PUBLIC`, and its native route sends nothing to another provider.

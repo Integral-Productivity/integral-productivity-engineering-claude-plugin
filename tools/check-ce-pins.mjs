@@ -4,17 +4,25 @@
 // CE still reads the keys they write; an upstream rename would turn the
 // off-switch silently fail-open. Run after every CE upgrade:
 //
-//   node tools/check-ce-pins.mjs                 # newest installed CE
+//   node tools/check-ce-pins.mjs                    # every CE install Claude Code has registered
+//   node tools/check-ce-pins.mjs --project <path>   # only the installs that run for one project
 //   node tools/check-ce-pins.mjs --skills-dir <path to CE skills/>
 //
-// Exit 0: every pin holds. Exit 1: a pin is missing; re-verify the profile
-// rule it backs before trusting it. Exit 2: no CE install was found.
+// Claude Code resolves CE per scope from ~/.claude/plugins/installed_plugins.json,
+// so the default checks every registered installPath, not just the newest one
+// cached. When the registry cannot be read it falls back to the newest cached
+// version and says so.
+//
+// Exit 0: every pin holds in every install checked. Exit 1: a pin is missing
+// somewhere; re-verify the profile rule it backs before trusting it there.
+// Exit 2: bad arguments, or no CE install was found, so nothing was verified.
 // Each pin's `text` is an exact substring of the named file in CE 3.30.4.
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 
 export const PINS = [
   {
@@ -66,6 +74,12 @@ export const PINS = [
     backs: 'verifier requirement 2: `cross_model_review_mode: off`',
   },
   {
+    id: 'cross-model-review-mode-off-value',
+    file: 'ce-code-review/references/cross-model-review.md',
+    text: 'Valid values are `auto` (default) and `off`; anything else is invalid and continues to the next layer, then `auto`. When it resolves to `off`, skip',
+    backs: 'verifier requirement 2: `off` is the value that skips the cross-model pass',
+  },
+  {
     id: 'cross-model-live-opt-in',
     file: 'ce-code-review/references/cross-model-review.md',
     text: 'a checkout `cross_model_review_mode: off` without a live opt-in',
@@ -113,29 +127,102 @@ export function findInstalledSkillsDir(cacheRoot) {
   return versions.length ? join(cacheRoot, versions.at(-1), 'skills') : null;
 }
 
-const DEFAULT_CACHE_ROOT = join(
-  homedir(), '.claude', 'plugins', 'cache', 'compound-engineering-plugin', 'compound-engineering',
-);
+const PLUGIN_KEY = 'compound-engineering@compound-engineering-plugin';
+const PLUGINS_DIR = join(homedir(), '.claude', 'plugins');
+const DEFAULT_REGISTRY = join(PLUGINS_DIR, 'installed_plugins.json');
+const DEFAULT_CACHE_ROOT = join(PLUGINS_DIR, 'cache', 'compound-engineering-plugin', 'compound-engineering');
 
-function main(argv) {
-  const arg = (name) => {
-    const i = argv.indexOf(name);
-    return i === -1 ? undefined : argv[i + 1];
-  };
-  const skillsDir = arg('--skills-dir') ?? findInstalledSkillsDir(arg('--cache-root') ?? DEFAULT_CACHE_ROOT);
-  if (!skillsDir || !existsSync(skillsDir)) {
-    console.error('check-ce-pins: no compound-engineering install found; nothing was verified');
-    return 2;
+// Distinct CE installs registered with Claude Code, each with the projects it
+// serves. With `project`, only the installs that project resolves: its own
+// project-scoped entries plus any entry that is not project-scoped. Returns
+// null when the registry cannot be read.
+export function registeredInstalls(registryPath, { project } = {}) {
+  let entries;
+  try {
+    entries = JSON.parse(readFileSync(registryPath, 'utf8')).plugins?.[PLUGIN_KEY];
+  } catch {
+    return null;
   }
-  const { checked, missing } = checkPins(skillsDir);
-  console.log(`check-ce-pins: ${skillsDir}`);
-  for (const pin of missing) {
-    console.log(`MISSING ${pin.id} (${pin.reason}) in ${pin.file}\n  backs: ${pin.backs}`);
+  if (!Array.isArray(entries)) return null;
+  const byPath = new Map();
+  for (const entry of entries) {
+    if (!entry?.installPath) continue;
+    const projectScoped = entry.scope === 'project' || entry.scope === 'local';
+    if (project && projectScoped && entry.projectPath !== project) continue;
+    const install = byPath.get(entry.installPath) ?? { installPath: entry.installPath, version: entry.version, projects: [] };
+    if (entry.projectPath) install.projects.push(entry.projectPath);
+    byPath.set(entry.installPath, install);
   }
-  console.log(`${checked - missing.length}/${checked} pins hold`);
-  return missing.length ? 1 : 0;
+  return [...byPath.values()];
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+function report(skillsDir, label) {
+  const { checked, missing } = existsSync(skillsDir)
+    ? checkPins(skillsDir)
+    : { checked: PINS.length, missing: PINS.map((pin) => ({ ...pin, reason: 'install not found' })) };
+  console.log(`${label}: ${skillsDir}`);
+  for (const pin of missing) {
+    console.log(`  MISSING ${pin.id} (${pin.reason}) in ${pin.file}\n    backs: ${pin.backs}`);
+  }
+  console.log(`  ${checked - missing.length}/${checked} pins hold`);
+  return missing.length === 0;
+}
+
+function main(argv) {
+  let values;
+  try {
+    ({ values } = parseArgs({
+      args: argv,
+      strict: true,
+      options: {
+        'skills-dir': { type: 'string' },
+        'cache-root': { type: 'string' },
+        registry: { type: 'string' },
+        project: { type: 'string' },
+      },
+    }));
+  } catch (error) {
+    console.error(`check-ce-pins: ${error.message}; nothing was verified`);
+    return 2;
+  }
+  if (values['skills-dir'] !== undefined) {
+    if (!existsSync(values['skills-dir'])) {
+      console.error(`check-ce-pins: ${values['skills-dir']} does not exist; nothing was verified`);
+      return 2;
+    }
+    return report(values['skills-dir'], 'check-ce-pins') ? 0 : 1;
+  }
+  const installs = registeredInstalls(values.registry ?? DEFAULT_REGISTRY, { project: values.project });
+  if (installs === null) {
+    const newest = findInstalledSkillsDir(values['cache-root'] ?? DEFAULT_CACHE_ROOT);
+    if (!newest) {
+      console.error('check-ce-pins: no plugin registry and no cached CE install found; nothing was verified');
+      return 2;
+    }
+    console.log('NOTICE: the plugin registry could not be read, so only the newest cached CE was checked, which may not be the CE that runs.');
+    return report(newest, 'check-ce-pins') ? 0 : 1;
+  }
+  if (installs.length === 0) {
+    console.error('check-ce-pins: no CE install is registered for this scope; nothing was verified');
+    return 2;
+  }
+  let allHold = true;
+  for (const install of installs) {
+    const scope = install.projects.length ? `${install.projects.length} project(s)` : 'user scope';
+    allHold = report(join(install.installPath, 'skills'), `CE ${install.version} (${scope})`) && allHold;
+  }
+  return allHold ? 0 : 1;
+}
+
+function isMain() {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+  } catch {
+    return false;
+  }
+}
+
+if (isMain()) {
   process.exitCode = main(process.argv.slice(2));
 }
