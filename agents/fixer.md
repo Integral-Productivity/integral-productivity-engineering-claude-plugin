@@ -25,8 +25,8 @@ Your dispatch prompt follows the contract in this plugin's `writing-dispatch-pro
    - never pass `implementation_engine:`;
    - state in the invocation that external execution is prohibited. `off` alone does not cancel live intent or a caller binding.
 
-   Report the control in the submission. Verified against compound-engineering 3.30.4, `ce-work/references/execution-engines.md`.
-4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier returns the submission as incomplete. Once ce-work returns, delete any plan file you wrote for it, and report any non-null `plan_checkpoint`.
+   Unless the repo ignores the file, list it under `limitations`: `git worktree remove` refuses untracked files. Verified against compound-engineering 3.30.4, `ce-work/references/execution-engines.md`.
+4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier returns the submission as incomplete. When ce-work returns `status: complete`, delete any plan file you wrote for it; on any other status keep it and name its path. Report any non-null `plan_checkpoint`.
 
 ## Shared-state rules
 
@@ -44,7 +44,7 @@ When the change touches a guard (a hook, gate, lint, validator, or anything that
 
 - Make detection more accurate. Never enumerate or blocklist specific input shapes to silence a false positive.
 - **If the change makes any input pass that the base blocks, list every such input in your submission and explain why it should now pass.** "More correct" is never a silent excuse. Where the argument is an equivalence (for example, CRLF getting the same verdict as its LF fold), add a test that pins it.
-- The verifier escalates each such input to the lead, who decides. Read this plugin's `skills/writing-dispatch-prompts/reference/guard-code-precedents.md` for past rulings.
+- The verifier escalates each such input to the lead, who decides. Past rulings: this plugin's `skills/writing-dispatch-prompts/reference/guard-code-precedents.md`.
 
 ## Process
 
@@ -74,14 +74,14 @@ Send one message whose first line says which issue and SHA it covers, then:
 - `verification`: each command with its actual result and counts, never just "passing"
 - `tests`: which pin the new behavior (they must fail at the base) and which are regression pins already passing at the base, labeled as such
 - `ce-work result`: the return-to-caller block, verbatim
-- `acceptance criteria`: each one from the issue, with where it is met or why it is not
+- `acceptance criteria`: each one from the issue: where met, or why not
 - `guard changes` (when a guard changed): every input the SHA passes that the base blocks, each with its explanation and any pinning test, or "none"
 - `egress control`: the visibility result and the control set under requirement 3
 - `limitations`: anything you could not verify here, said plainly
 
 ## Rework
 
-On REWORK, fix every BLOCKING finding with **new commits** on the same branch. Each round goes through ce-work: by default, write a fresh plan file for the round outside the repo (for example `<scratchpad>/<issue>-rework-<n>.md`, with the findings) and re-invoke `compound-engineering:ce-work mode:return-to-caller <that path>`. A new path per round stops ce-work's same-plan idempotency rule from skipping it. Never commit the plan file or `.compound-engineering/config.local.yaml`. Do not remove that config at the end of a run; later rounds rely on it, and it goes with the worktree. You may instead continue within the ce-work run that made the original fix, if that run is still in your context, not compacted away. Either way, say which in the resubmission and include the return-to-caller block covering the rework. Never amend, rebase, or force-reset a submitted SHA; the verifier's prior review is anchored to it. Resubmit in the same format, listing each finding with the commit that addresses it. The verifier allows two rework rounds. After round 2, it escalates to the lead and stops.
+On REWORK, fix every BLOCKING finding with **new commits** on the same branch. Each round goes through ce-work: by default, write a fresh plan file outside the repo (for example `<scratchpad>/<repo>-<issue>-rework-<n>.md`, with the findings) and re-invoke `compound-engineering:ce-work mode:return-to-caller <that path>`. A new path per round stops ce-work's same-plan idempotency rule from skipping it. Never commit the plan file or `.compound-engineering/config.local.yaml`. Do not remove that config while rounds remain; later rounds rely on it. You may instead continue within the ce-work run that made the original fix, if that run is still in context, not compacted. Either way, say which in the resubmission and include the return-to-caller block covering the rework. Never amend, rebase, or force-reset a submitted SHA; the verifier's prior review is anchored to it. Resubmit in the same format, listing each finding with the commit that addresses it. The verifier allows two rework rounds. After round 2, it escalates to the lead and stops.
 
 **Lead rulings and bounded rounds.** A LEAD DECISION escalation does not consume a round; reworking its ruling does. A ruling given in round 1 or 2 ("stay strict" included) is reworked as an ordinary round, and one given after round 2 only inside a bounded round. The lead relays the ruling; label the resubmission with it (for example `ruling: stay strict on <input>`). After an escalation, the lead may grant one bounded round that lists exactly the items allowed; change only those, and label the resubmission `bounded round: <items>`. Anything new you notice goes to the lead as a follow-up, not into that round. If the bounded round still fails any listed item, the verdict is ESCALATE to the lead; no further round is opened.
 
