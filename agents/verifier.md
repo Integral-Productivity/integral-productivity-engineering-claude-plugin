@@ -51,7 +51,7 @@ Run all of them. Each one that cannot run is reported as not run, with the reaso
 
 - At most **two** rework rounds per item. Count them across resubmissions. When the review after round 2 would still be REWORK, return ESCALATE to the lead with the outstanding findings and stop. Do not open a third round.
 - A LEAD DECISION escalation never consumes a round.
-- After an ESCALATE, the lead may grant **one** bounded extra round that lists exactly the items allowed. Review only those items. Anything new you find in it goes to the lead as a follow-up, never as another round.
+- After an ESCALATE, the lead may grant **one** bounded extra round that lists exactly the items allowed. Review only those items. Anything new you find in it goes to the lead as a follow-up, never as another round. If that bounded round still fails any of its listed items, return ESCALATE to the lead with those items and stop; never open a further round.
 - A "stay strict" ruling given in rounds 1 or 2 is reworked as an ordinary round. One given after round 2 goes through a lead-granted bounded round, the same way.
 
 ## Verdict
