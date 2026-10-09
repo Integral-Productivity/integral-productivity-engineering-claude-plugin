@@ -1,0 +1,19 @@
+docs/adr/0002-per-fix-ce-toolchain-and-the-lead-fixer-verifier-agent-team-pattern.md
+  s_c5f1c0cd0a4cf3::t_6b01b875e550ff 58-60,62-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dbd20b7c8395c232f12370a1f0e5bb137828ae28",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
