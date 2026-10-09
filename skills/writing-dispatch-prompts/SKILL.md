@@ -140,6 +140,10 @@ base directory:
 - [`reference/ce-work-evidence.md`](reference/ce-work-evidence.md): what
   binds a fixer's submission to its SHA (the `verified tree`), the receipt
   investigation, and why there is no commit hook.
+- [`reference/fix-queue-workflow.md`](reference/fix-queue-workflow.md) and
+  [`workflows/fix-queue.js`](workflows/fix-queue.js): the saved Workflow that
+  runs claim, fixer, verifier and the rework cap as fixed steps, and how to
+  install and run it.
 - [`reference/guard-code-precedents.md`](reference/guard-code-precedents.md):
   past lead rulings on guard inputs. The one copy; neither profile repeats it.
 - [`reference/ce-config-pins.md`](reference/ce-config-pins.md): the
