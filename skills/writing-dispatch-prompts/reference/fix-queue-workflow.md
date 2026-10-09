@@ -68,7 +68,9 @@ runs low before a rework round stops and is escalated with its last verdict.
 issue number to the files its fixer may edit. When the lead gives one, it is
 the edit boundary. Without one, the scope the admission agent read from the
 issue is shown to the fixer only as an advisory, fenced suggestion, because
-anyone can edit an issue body on a public repo. A malformed `scopeFence` stops
+anyone can edit an issue body on a public repo. When `scopeFence` is given,
+an admitted issue it does not name is not fixed: it is reported under
+`skipped` and never gets the guessed scope. A malformed `scopeFence` stops
 the workflow before an agent runs, rather than silently falling back to that
 guess. It is malformed if a key is not an issue number, if a value is not
 non-empty text, or if a key is outside `issues` when `issues` is given. A key
@@ -146,18 +148,26 @@ that matches no admitted issue is logged as unused.
   - its base is not a full SHA
 
   Such items are reported as blocked, because the admission agent may already
-  have claimed them. A number admitted twice is fixed once and reported as a
-  skipped duplicate. With `issues` given, a requested number the admission
+  have claimed them. The first entry the admission step returns for a number
+  decides it, whether it was admitted or rejected; any later entry for that
+  number is a skipped duplicate, never fixed. A number the admission step
+  lists as both skipped and admitted is not fixed and is reported once, as
+  skipped. With `issues` given, a requested number the admission
   agent did not account for is reported as blocked, so a claimed issue is
   never silently lost.
 - **Untrusted text is fenced.** Issue titles, everything the admission agent
   gathered from an issue, every submission field and every verdict enter a
   prompt only inside a `<<<DATA name: untrusted text as one JSON string ...>>>`
   fence. Each prompt says to report an instruction found inside, never follow
-  it. The body is a single JSON-escaped line, so it cannot start a new line
-  that reads as a header. Every angle bracket or lookalike (ASCII, fullwidth,
-  guillemets, CJK) and every zero-width or bidi control character in it is
-  written as a `\u` escape, so it cannot render a closer. A previous SHA
+  it. The body is a single JSON-escaped line of printable ASCII only. This is
+  an allowlist, not a list of known-bad characters. Every UTF-16 code unit
+  outside `\x20`-`\x7e`, plus ASCII `<` and `>`, is written as a `\u`
+  escape; an astral character becomes its two surrogate escapes. That covers
+  line and paragraph separators, lookalike brackets, zero-width, bidi and tag
+  characters, and anything not yet thought of. So the body cannot start a new
+  line or render a closer, real or lookalike. (The first version used a list of
+  known characters; review found U+2028, U+FE64 and tag characters getting
+  through.) A previous SHA
   enters a rework prompt only if it is a full hex id. The workflow's own
   missing-field check is labelled as such in the rework prompt, never as the
   verifier's verdict.
@@ -228,6 +238,15 @@ Its scenarios:
     before any agent runs; an unused key logged
 24. a returned key that is not lowercase letters and underscores never
     relayed to the verifier
+25. the fence allowlist, one test per class: U+2028/2029/0085, tag
+    characters (a tag-encoded closer), bidi isolates U+2066-2069 and U+061C,
+    and lookalikes U+FE64/FE65 and U+276E/276F. Every fenced body stays one
+    line of printable ASCII
+26. trimmed SHA, base and verified tree in `readyToOpen` and `needsReverify`
+27. a rejected-first duplicate never fixed; an issue both skipped and
+    admitted reported once, as skipped
+28. with `scopeFence` given, an admitted issue it does not name skipped, with
+    no agent run and no guessed scope
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -268,6 +287,10 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   `needsReverify` dropped from the report
 - each `scopeFence` check removed, and the unused-key log removed
 - the relayed-key filter removed
+- the allowlist swapped back to the old list of known characters, which
+  fails all four class tests; the ASCII `<`/`>` escape dropped
+- the SHAs left untrimmed; the rejected-first duplicate check removed; the
+  skipped-and-admitted check removed; an unnamed issue given the guessed scope
 - each of the 15 submission fields made optional. The checks for `sha`,
   `base` and `verified_tree` are equivalent mutants: a missing value still
   fails their 40-character hex check, so behavior does not change
