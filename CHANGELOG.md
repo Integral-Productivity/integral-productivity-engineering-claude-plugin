@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.15.1...v0.16.0) (2026-10-09)
+
+
+### Features
+
+* **agents:** verifier evidence gate binds the commit to the tree ce-work verified ([#110](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/110)) ([e65bdab](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/e65bdab0010736d724d5ca2c64a047e9d2f13cdd))
+
 ## [0.15.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.15.0...v0.15.1) (2026-10-09)
 
 
