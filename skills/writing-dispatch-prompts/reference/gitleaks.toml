@@ -1,0 +1,7 @@
+# Verifier-owned gitleaks config for the pre-egress secret scan
+# (see ce-config-pins.md). Passed with --config so that nothing in the branch
+# under review (.gitleaks.toml, GITLEAKS_CONFIG) can weaken the rules.
+title = "integral-productivity-engineering verifier pre-egress scan"
+
+[extend]
+useDefault = true

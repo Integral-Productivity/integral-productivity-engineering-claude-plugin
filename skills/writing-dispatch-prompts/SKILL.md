@@ -126,6 +126,25 @@ A running session naming the issue is a real claim. An aged lock with no running
 session, no branch, and no PR is decayed. On a confirmed duplicate, leave the
 label alone — removing it strips the owner's claim.
 
+## Fixer and verifier references
+
+The `fixer` and `verifier` agent profiles in this plugin keep part of their
+rules here, so the profiles stay under the agent-prompt size guideline. A
+profile reaches them by invoking this skill and reading the file under its
+base directory:
+
+- [`reference/fixer-submission.md`](reference/fixer-submission.md): the
+  fields a fixer's submission must carry, which the verifier checks.
+- [`reference/verifier-verdict.md`](reference/verifier-verdict.md): the
+  fields a verifier's verdict carries.
+- [`reference/guard-code-precedents.md`](reference/guard-code-precedents.md):
+  past lead rulings on guard inputs. The one copy; neither profile repeats it.
+- [`reference/ce-config-pins.md`](reference/ce-config-pins.md): the
+  compound-engineering text each egress control rests on, how to re-check it
+  after an upgrade, and the egress decisions taken with it, including the
+  verifier's secret scan and its config,
+  [`reference/gitleaks.toml`](reference/gitleaks.toml).
+
 ## Common mistakes
 
 **Summarizing the issue back.** The session can read it. Spend the words on what
