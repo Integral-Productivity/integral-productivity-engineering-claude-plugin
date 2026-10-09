@@ -1,0 +1,111 @@
+{
+  "$comment": "Read by tools/check-internal-refs.mjs (issue #97). publicRepos: the org repos whose visibility is PUBLIC, so naming them is fine; any repo not listed here is treated as internal, so a new public repo is added here before it is cited. No internal repo name appears in this file in any form. exclude: files with existing mentions that #97 left out of scope, each with the reason. #119 tracks genericising the excluded files; remove an entry once its file is genericised; a new file is checked by default.",
+  "org": "Integral-Productivity",
+  "publicRepos": [
+    ".github",
+    "ASCollections",
+    "ASDate",
+    "ASDomainDrivenDesign",
+    "ASMake",
+    "ASText",
+    "ASUnit",
+    "build-your-own-radar",
+    "Generative-AI-Prompt-Instructions",
+    "glassfrog-clipper",
+    "ground_rules",
+    "holacracy-claude-plugin",
+    "HookPlugins",
+    "integral-productivity-engineering-claude-plugin",
+    "KMPluginActions",
+    "lean-management-claude-plugin",
+    "marketplace",
+    "metawork-claude-plugin",
+    "metawork-ontology",
+    "model-framework-claude-plugin",
+    "note-templates",
+    "of-inbox-email-processing",
+    "omnifocus-domain",
+    "omnifocus-reclaim-sync",
+    "omnifocus-taskpaper-templates",
+    "ontology-hub",
+    "ontology-tooling",
+    "reusable-workflows",
+    "software-architecture-claude-plugin",
+    "spm",
+    "TaskPaperParser"
+  ],
+  "exclude": [
+    {
+      "path": ".claude/settings.json",
+      "reason": "pre-existing; names org infrastructure repos in config or workflow wiring, which may need the real name to function; genericising it is tracked in #119"
+    },
+    {
+      "path": ".github/workflows/auto-merge.yml",
+      "reason": "pre-existing; names org infrastructure repos in config or workflow wiring, which may need the real name to function; genericising it is tracked in #119"
+    },
+    {
+      "path": ".github/workflows/release-please.yml",
+      "reason": "pre-existing; names org infrastructure repos in config or workflow wiring, which may need the real name to function; genericising it is tracked in #119"
+    },
+    {
+      "path": "CLAUDE.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "README.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-live-artifact/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-mcp-server/reference/node_mcp_server.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-mcp-server/reference/python_mcp_server.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-mcp-server/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-private-sdk/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-shared-drive/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-shared-drive/templates/base-CLAUDE.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/bootstrap-shared-drive/templates/client-CLAUDE.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/devops-excellence-cold-start/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/issue-triage/reference/route-inference.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/issue-triage/reference/vocabulary-discovery.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/issue-triage/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    },
+    {
+      "path": "skills/writing-dispatch-prompts/SKILL.md",
+      "reason": "pre-existing prose mentions; outside the #97 scope fence; genericising it is tracked in #119"
+    }
+  ]
+}

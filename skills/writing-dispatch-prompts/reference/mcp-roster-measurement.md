@@ -52,7 +52,7 @@ Compare:
 | Task completed | yes | yes |
 
 The ambient children were `@playwright/mcp` (two processes), `episodic-memory`,
-`flying-logic-mcp` (two), `claude-mermaid`, and `browser-use` (two). The
+an internal MCP server (two), `claude-mermaid`, and `browser-use` (two). The
 `claude` process itself measured 109 MB and 146 MB in the two runs. That
 difference is heap variance, not a roster effect.
 

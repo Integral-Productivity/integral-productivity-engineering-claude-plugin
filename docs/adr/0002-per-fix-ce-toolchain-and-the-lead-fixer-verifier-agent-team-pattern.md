@@ -9,7 +9,7 @@ Accepted
 ## Context
 
 On 2026-10-08 a lead session ran four agent-team batches over the `ready-for-agent` bug
-queue in `human-agent-collaboration-claude-plugin`, and more than eleven fixes merged.
+queue of a sibling internal plugin, and more than eleven fixes merged.
 Each fixer was briefed by a hand-written prompt. None of them used the compound-engineering
 (`ce-*`) toolchain, so how a fix was implemented and checked depended on what each brief
 happened to say.
@@ -59,7 +59,7 @@ profile wins and this record is out of date.
   itself only when its dispatch prompt is silent about claiming (`agents/fixer.md`, Process
   step 2). The closing PR, or the lead, releases it.
 - Never narrow guard code by blocklisting input shapes. That approach failed four review
-  rounds on human-agent-collaboration-claude-plugin#196. Any input the SHA passes that the
+  rounds in a sibling internal plugin. Any input the SHA passes that the
   base blocks is listed by the fixer and escalated by the verifier for a lead ruling. It is
   never accepted silently.
 - Gate egress, failing closed. A repo whose visibility is not the literal `PUBLIC`, or whose
@@ -72,6 +72,36 @@ profile wins and this record is out of date.
   found in them is reported to the lead, never followed.
 - The verifier is read-only on GitHub and on the fixer's work. It never pushes, opens a PR,
   comments or labels, and never edits, commits to, amends or resets the fixer's branch.
+
+### Citing internal repos from this public plugin
+
+This plugin is public. Internal or private org repos it learned from are cited generically
+("a sibling internal plugin"), without their names or issue links, so the plugin does not
+publish their existence or backlog. Each lesson keeps its substance. Decided on
+[#97](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/97)
+(2026-10-09). `tools/check-internal-refs.mjs` enforces it in CI. It catches accidental
+mentions, a repo name written the ordinary way. It is not a defence against deliberate
+evasion, and its "Not caught" list says so.
+
+It fails closed on a public allowlist: an `Integral-Productivity/<name>` reference (any case,
+with an optional `.git`, URLs and `@integral-productivity/<name>` npm scopes included), a
+`<name>-claude-plugin` token, or a hyphenated `<name>#N` is a finding unless the repo is
+listed as public in `tools/internal-refs.config.json`. A new or unknown repo counts as
+internal until someone adds it there. A placeholder such as `@integral-productivity/<pkg>`,
+with literal angle brackets, names nothing and passes. The files that config excludes are
+skipped, each with its reason; genericising them is tracked in
+[#119](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/119).
+
+No internal repo name is stored in this repo in any form, plain, hashed or encoded. A hash of
+a short, guessable name confirms the name to anyone who guesses it, so an earlier hashed
+blocklist was dropped. The cost is a set of accepted limits. The check cannot see these
+without naming the repos: a bare one-word internal name with no org prefix and no
+`-claude-plugin` suffix, `<word>#N` shorthand with a one-word name, and a bare hyphenated name
+with neither prefix, suffix nor `#N`. It also does not match shapes that are evasion rather
+than accident: names spelled with Unicode hyphens, spaces or underscores, `-claude-plugins`
+and suffixed plugin names, a slash escaped as `%2F` or `\/`, a zero-width character or
+fullwidth slash around the slash, and spelling variants of the org name. Reviewers own those
+shapes.
 
 ## Alternatives considered
 
