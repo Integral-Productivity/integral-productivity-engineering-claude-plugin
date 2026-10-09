@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.16.0...v0.17.0) (2026-10-09)
+
+
+### Features
+
+* **workflows:** fix-queue runs the lead/fixer/verifier pattern as fixed steps ([#117](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/117)) ([37063bd](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/37063bdae141e9903ab6c831a02405777c811edd))
+
 ## [0.16.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.15.1...v0.16.0) (2026-10-09)
 
 
