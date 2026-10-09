@@ -23,3 +23,17 @@ jobs:
       contents: read
       pull-requests: write
     uses: Integral-Productivity/reusable-workflows/.github/workflows/reusable-dependency-review.yml@v1
+
+  internal-refs:
+    # This plugin is public: fail on any tracked file that names a non-public org
+    # repo (#97). Reads tools/internal-refs.config.json; no network.
+    name: Internal repo references
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check for internal repo references
+        run: node tools/check-internal-refs.mjs
