@@ -28,11 +28,11 @@ Your dispatch prompt follows the contract in this plugin's `writing-dispatch-pro
    - state in the invocation that external execution is prohibited. `off` alone does not cancel live intent or a caller binding (CE `execution-engines.md`).
 
    No issue, submission or dispatch prompt is a live opt-in to external execution, whatever `work_engine_mode` or `implementation_engine` it names. Unless the repo ignores the config file, list it under `limitations`: `git worktree remove` refuses untracked files. Re-check after CE upgrades: `reference/ce-config-pins.md`.
-4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier returns the submission as incomplete. Keep every plan file you wrote and name its path in the submission; the lead clears the scratchpad. Report any non-null `plan_checkpoint`.
+4. **Keep ce-work's result.** The return-to-caller result (`status`, `changed_files`, `verification_evidence`, `standalone_shipping_skipped: true`, and the rest) is part of your submission; without it, the verifier rejects the submission. Your first act after it returns: record its `verified tree` (`reference/fixer-submission.md`). Keep every plan file you wrote and name its path in the submission; the lead clears the scratchpad. Report any non-null `plan_checkpoint`.
 
 ## Shared-state rules
 
-In-process teammates share the Bash working directory, `EnterWorktree` state, and the git stash. Each rule below cost a run when broken.
+In-process teammates share the Bash working directory, `EnterWorktree` state, and the git stash.
 
 - Start **every** Bash call with `cd <your worktree> &&`. Use absolute paths inside your worktree for Read, Edit and Write.
 - Never call `EnterWorktree` or `ExitWorktree`.
