@@ -12,7 +12,7 @@ description: >
   in one file, reported "already claimed" ambiguously, or spawned a
   process tree or credential prompts its task did not need.
 status: draft
-version: 0.2.0
+version: 0.3.0
 ---
 
 # Writing dispatch prompts
@@ -43,6 +43,46 @@ A dispatch prompt contains these parts, in this order:
 8. **MCP roster** — one line naming the servers the session was launched with
    (usually "none") and "use `gh` for GitHub." A session that does not know its
    roster was scoped will read a missing tool as a broken environment.
+
+## The launch command: where the chip runs
+
+Start a local chip in a Herdr pane. This is the standing rule in the
+operator's global `~/.claude/CLAUDE.md` ("Spawn local sessions in Herdr, not
+Terminal.app", decided 2026-10-02). A chip in a Herdr pane is a row in `herdr agent list`
+with its state (idle, working, blocked), its Claude session ID, and its
+directory, and a phone can attach to its terminal through Moshi. A chip
+started in a plain terminal window, or as a headless `claude -p`, is in
+neither place.
+
+First run `test "$HERDR_ENV" = 1`. If it fails, the dispatching session is not
+in a Herdr pane: say so and stop. Do not drive Herdr from outside.
+
+```bash
+# 1. One worktree workspace for the chip. Read the root pane ID from the JSON it prints.
+herdr worktree create --cwd <repo> --branch claude/<slug> --label "<name>" --no-focus
+
+# 2. Start Claude Code in that pane. Herdr passes everything after `--` to `claude` unchanged.
+herdr agent start <name> --kind claude --pane <pane-id> -- \
+  -n '<display name>' --strict-mcp-config --mcp-config <absolute path>/empty-roster.json
+
+# 3. Send the dispatch prompt from a file.
+herdr agent prompt <name> "$(cat <absolute path>/dispatch-prompt.md)"
+```
+
+- `<name>` matches `[a-z][a-z0-9_-]{0,31}`.
+- `empty-roster.json` holds `{"mcpServers":{}}`. A file keeps JSON quoting out
+  of the launch command.
+- Leave `--wait` off `agent prompt` for long work.
+- Never close a workspace or pane this session did not create.
+
+Steps 1 to 3 without the MCP flags are the recipe in the global CLAUDE.md.
+Step 2 **with** the MCP flags was not run as of 2026-10-09. On its first run,
+check two things in the chip before you rely on it: `/mcp` lists no servers,
+and the prompt arrived whole. Issue #124 tracks that run.
+
+Where Herdr is not available (a cloud session, or a machine without Herdr),
+launch with `claude -n <name> -w <worktree>` and the roster flags from the next
+section.
 
 ## The launch command: scope the MCP roster
 
@@ -121,6 +161,12 @@ The two available signals fail in opposite directions, so one is a coin flip:
 |---|---|---|
 | Issue label / claim ref | Authoritative, cross-machine | **Lagging** — a live claim has no PR or branch for its first minutes, so it looks identical to a stale one |
 | Live session list | Real-time, leading | **Machine-local**, title-keyed — misses claims from other machines |
+
+On a machine that runs Herdr, `herdr agent list` is the live session list. Each
+row has the pane, the directory, and the Claude session ID (observed
+2026-10-08, Herdr 0.9.3). It lists sessions in Herdr panes only. A session
+started in the Claude Desktop app or in a plain terminal is not in it, so an
+empty result does not prove that no session holds the issue.
 
 A running session naming the issue is a real claim. An aged lock with no running
 session, no branch, and no PR is decayed. On a confirmed duplicate, leave the
