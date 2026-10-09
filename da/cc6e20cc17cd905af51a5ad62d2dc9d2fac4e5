@@ -1,0 +1,21 @@
+agents/fixer.md
+  s_d29ad8576bb71f::t_82b9b0537e02a0 36,38-40,45,55,67,70,75,79
+agents/verifier.md
+  s_d29ad8576bb71f::t_cdffe3c18536ce 21-22,39,41,43,56,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dacc6e20cc17cd905af51a5ad62d2dc9d2fac4e5",
+  "prompts": {},
+  "sessions": {
+    "s_d29ad8576bb71f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "09bb5cc6-b507-449d-9506-752e4c375e47",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
