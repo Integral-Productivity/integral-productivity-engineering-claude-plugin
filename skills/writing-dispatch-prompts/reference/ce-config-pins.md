@@ -60,9 +60,9 @@ plan-only checkpoint, and it is left behind untracked.
 
 Decision: adopted, in the verifier. On a `PUBLIC` repo a cross-model review
 sends an unpushed branch to another provider before GitHub's secret scanning
-sees it. Before ce-code-review, the verifier runs the block below as **one
-Bash call**, with each placeholder replaced by its value inside the single
-quotes. The placeholders:
+sees it. Before ce-code-review, the verifier pastes the block below into
+**one Bash tool call**, filling the five assignments on its first line inside
+the heredoc. The placeholders (none may contain a single quote):
 
 - `<wt>`: the absolute path of its review worktree
 - `<base>`: the full 40-character SHA it verified in check 1, never one taken
@@ -72,39 +72,49 @@ quotes. The placeholders:
 - `<scan>`: the absolute path of a new directory under its scratch directory
 
 ```bash
-set -eu
-mkdir -p '<scan>/empty'
-git -C '<wt>' -c core.quotePath=false diff -z --name-only '<base>..<sha>' > '<scan>/names'
-rc=0; grep -zqE '(^|/)\.(gitleaks\.toml|gitleaksignore|gitattributes)$' '<scan>/names' || rc=$?
+bash -u <<'PRE_EGRESS'
+WT='<wt>' BASE='<base>' SHA='<sha>' REF='<ref>' SCAN='<scan>'
+mkdir -p "$SCAN/empty" || exit 10
+git -C "$WT" -c core.quotePath=false diff -z --name-only "$BASE..$SHA" > "$SCAN/names" || exit 11
+rc=0; grep -zqE '(^|/)\.(gitleaks\.toml|gitleaksignore|gitattributes)$' "$SCAN/names" || rc=$?
 case $rc in 0) echo 'PRE-EGRESS: suppression file changed'; exit 3 ;; 1) ;; *) exit 4 ;; esac
-git -C '<wt>' diff --text --no-ext-diff --no-textconv '<base>..<sha>' > '<scan>/egress'
-git -C '<wt>' log -p -m --text --no-ext-diff --no-textconv '<base>..<sha>' >> '<scan>/egress'
-git -C '<wt>' log --format=%B '<base>..<sha>' >> '<scan>/egress'
-test -s '<scan>/egress'
-cd '<scan>/empty'
+git -C "$WT" diff --text --no-ext-diff --no-textconv "$BASE..$SHA" > "$SCAN/egress" || exit 12
+git -C "$WT" log -p -m --text --no-ext-diff --no-textconv "$BASE..$SHA" >> "$SCAN/egress" || exit 12
+git -C "$WT" log --format=%B "$BASE..$SHA" >> "$SCAN/egress" || exit 12
+test -s "$SCAN/egress" || { echo 'PRE-EGRESS: empty input'; exit 5; }
+cd "$SCAN/empty" || exit 13
 env -u GITLEAKS_CONFIG -u GITLEAKS_CONFIG_TOML gitleaks stdin \
-  --config '<ref>/reference/gitleaks.toml' --ignore-gitleaks-allow --no-banner --redact < '<scan>/egress'
+  --config "$REF/reference/gitleaks.toml" --ignore-gitleaks-allow --no-banner --redact \
+  < "$SCAN/egress" || exit $?
 echo 'PRE-EGRESS-SCAN-CLEAN'
+PRE_EGRESS
 ```
 
-**The pass stays on only when the call exits 0 and its last line of output is
-`PRE-EGRESS-SCAN-CLEAN`.** Anything else turns the cross-model pass off,
-exactly as for a private repo. `set -e` stops the block at the first failing
-step, so the marker is never printed after a failure:
+**The cross-model pass stays on only when the call exits 0 and its output
+contains the line `PRE-EGRESS-SCAN-CLEAN`.** Anything else turns it off,
+exactly as for a private repo.
+
+The block does not rely on `set -e`. The Bash tool runs a command inside
+`eval … &&`, where bash and zsh ignore errexit, and an `exit` or `cd` in the
+tool's own shell would leak into it. So the steps run in a fresh `bash`
+process fed by the quoted heredoc, every fallible step carries an explicit
+`|| exit N`, and the outer call's exit status is that process's:
 
 | Exit | Cause |
 |---|---|
 | 0 with the marker | clean: every step succeeded and gitleaks found nothing |
-| 128 (or another git code) | a bad `<wt>`, `<base>` or `<sha>` in any `git` step |
+| 10 | the scratch directory could not be created |
+| 11 | the names `git` step failed: a bad `<wt>`, `<base>` or `<sha>` |
 | 3 | the range touches a suppression file |
 | 4 | grep itself failed |
-| 1 | `test -s`: empty input, a scan of nothing; or gitleaks found a leak (also BLOCKING, reported to the lead at once) |
+| 12 | one of the three egress `git` steps failed |
+| 5 | empty input, a scan of nothing (an empty range) |
+| 13 | could not enter the empty directory |
+| 1 | gitleaks reported a leak (also BLOCKING, reported to the lead at once) or a fatal gitleaks error; read its output to tell which |
 | 127 | `gitleaks` is missing |
 
-Each `git` output goes to a file under `set -e`, so a git error stops the
-block before gitleaks can "scan" 0 bytes and pass. A submission whose range
-is empty fails closed the same way. The grep's clean result (exit 1) is
-absorbed by the `case`, so a clean run never shows an error status.
+The grep's clean result (exit 1) is absorbed by the `case`, so a clean run
+never shows an error status.
 
 It scans what leaves the machine. The range's net diff and commit messages are
 what the reviewer reads. Each commit's own patch (`log -p -m`) is there
