@@ -15,10 +15,18 @@ REWORK unless all of these hold:
    ce-work or continued within the earlier run.
 2. Each block's `status` is `complete`. A `blocked` or `failed` block means the
    fixer should have stopped and reported (fixer requirement 1), not submitted.
-3. Every file in `git diff --name-only <base>..<sha>` appears in the
-   `changed_files` of one of the submitted blocks. A file outside them was
-   changed outside ce-work.
-4. `git rev-parse <sha>^{tree}` equals the submission's `verified tree`.
+3. Containment runs both ways:
+   - every file in `git diff --name-only <base>..<sha>` appears in the
+     `changed_files` of one of the submitted blocks; a file outside them was
+     changed outside ce-work;
+   - every path in every submitted block's `changed_files` appears in that
+     diff. A path missing from it was left out of the commit, for example an
+     uncommitted deletion the fixer did not stage. The one legitimate gap is a
+     path a later block reverts back to its state at `<base>`: the submission
+     names it, and the verifier confirms that path is identical at `<base>` and
+     `<sha>`.
+4. `git rev-parse '<sha>^{tree}'` equals the submission's `verified tree`.
+   Quote the rev: unquoted, `^{tree}` fails under zsh's `extendedglob`.
 
 ## Why a tree hash (the issue comment, 2026-10-09)
 
@@ -30,12 +38,12 @@ to the tree under review. The fixer therefore records the tree ce-work
 verified, as its first act after ce-work returns (fixer requirement 4), before
 any edit, staging or commit:
 
-- ce-work left nothing uncommitted: `git rev-parse HEAD^{tree}`.
+- ce-work left nothing uncommitted: `git rev-parse 'HEAD^{tree}'`.
 - ce-work left changes uncommitted (both shapes occur: return-to-caller.md
   says ce-work commits each completed unit, yet runs also hand files back):
   build the tree in a temporary index, so nothing else in the real index
   counts and the real index is untouched:
-  `T=$(mktemp) && GIT_INDEX_FILE=$T git read-tree HEAD && GIT_INDEX_FILE=$T git add -A -- <uncommitted changed_files> && GIT_INDEX_FILE=$T git write-tree; rm -f "$T"`.
+  `T=$(mktemp) && GIT_INDEX_FILE=$T git read-tree HEAD && GIT_INDEX_FILE=$T git add -A -- <all uncommitted changed_files, none omitted> && GIT_INDEX_FILE=$T git write-tree; rm -f "$T"`.
   Committing those same paths by path (fixer Process step 6) produces a
   commit with that tree. `add -A` also records a file ce-work deleted.
 
@@ -44,7 +52,7 @@ it would hash whatever the working tree held then, so an edit made after ce-work
 returned would be hashed in and match by construction (review of the first
 version, 2026-10-09).
 
-The verifier compares it with `git rev-parse <sha>^{tree}`. A tree hash, not a
+The verifier compares it with `git rev-parse '<sha>^{tree}'`. A tree hash, not a
 commit hash, so a fixer may still write its own commit message.
 
 Smoke evidence, 2026-10-09, on throwaway repos. The first table recorded the
@@ -54,13 +62,20 @@ temporary-index recipe, recorded at return.
 | Case (tree recorded at commit time) | Verified tree | Committed tree | Match |
 |---|---|---|---|
 | ce-work committed one unit; the caller staged and committed the leftover file by path | `d11b5fa…` | `d11b5fa…` | yes |
-| ce-work left nothing; `HEAD^{tree}` recorded | `d11b5fa…` | `d11b5fa…` | yes |
+| ce-work left nothing; `'HEAD^{tree}'` recorded | `d11b5fa…` | `d11b5fa…` | yes |
 | a message-only commit after the last recorded tree | `63003ac…` | `63003ac…` | yes |
 
 | Case (tree recorded at return, temporary index) | Verified tree | Committed tree | Match |
 |---|---|---|---|
 | ce-work committed one unit and left one file edited and one deleted; an unrelated file was staged in the real index before the caller committed the two leftovers by path | `d11b5fa…` | `d11b5fa…` | yes |
 | the same, but the caller edited the leftover file after ce-work returned, then committed | `d11b5fa…` | `87c3477…` | **no**: REWORK |
+
+The tree match alone runs one way. The adversary review (2026-10-09) showed a
+fixer can leave one of ce-work's uncommitted files out of both the recorded
+tree and the commit, and still match. Reproduced: ce-work changed `a.txt` and
+deleted `d.txt`; the fixer recorded and committed only `a.txt`; the trees
+matched, and `d.txt` was missing from `git diff --name-only <base>..<sha>`. The
+reverse containment check in item 3 is what catches it.
 
 What it proves: the SHA under review is exactly the tree the fixer says ce-work
 verified, so any later edit shows up as a mismatch. What it cannot prove: that
