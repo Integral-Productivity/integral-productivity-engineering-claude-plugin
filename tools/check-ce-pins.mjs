@@ -19,7 +19,7 @@
 // Each pin's `text` is an exact substring of the named file in CE 3.30.4.
 
 import { readFileSync, readdirSync, existsSync, realpathSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -132,11 +132,25 @@ const PLUGINS_DIR = join(homedir(), '.claude', 'plugins');
 const DEFAULT_REGISTRY = join(PLUGINS_DIR, 'installed_plugins.json');
 const DEFAULT_CACHE_ROOT = join(PLUGINS_DIR, 'cache', 'compound-engineering-plugin', 'compound-engineering');
 
+// One spelling per directory: absolute, symlinks resolved where the path
+// exists, no trailing slash. Raw string matching let `--project .` or a
+// trailing slash miss a project's own install and pass on user scope alone.
+function normalizePath(path) {
+  const absolute = resolve(path);
+  try {
+    return realpathSync(absolute);
+  } catch {
+    return absolute.length > 1 ? absolute.replace(/\/+$/, '') : absolute;
+  }
+}
+
 // Distinct CE installs registered with Claude Code, each with the projects it
 // serves. With `project`, only the installs that project resolves: its own
-// project-scoped entries plus any entry that is not project-scoped. Returns
-// null when the registry cannot be read.
+// project-scoped entries plus any entry that is not project-scoped; each
+// install then carries `matchedProject: true` when it came from the project's
+// own entry. Returns null when the registry cannot be read.
 export function registeredInstalls(registryPath, { project } = {}) {
+  const wanted = project === undefined ? undefined : normalizePath(project);
   let entries;
   try {
     entries = JSON.parse(readFileSync(registryPath, 'utf8')).plugins?.[PLUGIN_KEY];
@@ -148,9 +162,11 @@ export function registeredInstalls(registryPath, { project } = {}) {
   for (const entry of entries) {
     if (!entry?.installPath) continue;
     const projectScoped = entry.scope === 'project' || entry.scope === 'local';
-    if (project && projectScoped && entry.projectPath !== project) continue;
-    const install = byPath.get(entry.installPath) ?? { installPath: entry.installPath, version: entry.version, projects: [] };
+    const matches = projectScoped && entry.projectPath && normalizePath(entry.projectPath) === wanted;
+    if (wanted !== undefined && projectScoped && !matches) continue;
+    const install = byPath.get(entry.installPath) ?? { installPath: entry.installPath, version: entry.version, projects: [], matchedProject: false };
     if (entry.projectPath) install.projects.push(entry.projectPath);
+    if (matches) install.matchedProject = true;
     byPath.set(entry.installPath, install);
   }
   return [...byPath.values()];
@@ -204,6 +220,10 @@ function main(argv) {
   }
   if (installs.length === 0) {
     console.error('check-ce-pins: no CE install is registered for this scope; nothing was verified');
+    return 2;
+  }
+  if (values.project !== undefined && !installs.some((install) => install.matchedProject)) {
+    console.error(`check-ce-pins: no project-scoped CE install is registered for ${values.project}; refusing to report on user scope alone`);
     return 2;
   }
   let allHold = true;

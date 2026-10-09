@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -113,6 +113,8 @@ test('registeredInstalls returns each distinct registered install with its proje
     const forC = registeredInstalls(path, { project: '/c' });
     assert.deepEqual(forC.map((i) => i.installPath).sort(), ['/ce/3.29.0', '/ce/3.30.1']);
     assert.equal(registeredInstalls(join(dir, 'absent.json')), null);
+    writeFileSync(join(dir, 'odd.json'), JSON.stringify({ plugins: { [KEY]: {} } }));
+    assert.equal(registeredInstalls(join(dir, 'odd.json')), null);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -135,7 +137,8 @@ test('CLI checks every registered install and fails when any one misses a pin', 
     const r = spawnSync(process.execPath, [SCRIPT, '--registry', both], { encoding: 'utf8' });
     assert.equal(r.status, 1);
     assert.match(r.stdout, /work-engine-mode-values/);
-    assert.equal(spawnSync(process.execPath, [SCRIPT, '--registry', both, '--project', '/elsewhere']).status, 0);
+    assert.equal(spawnSync(process.execPath, [SCRIPT, '--registry', both, '--project', '/elsewhere']).status, 2);
+    assert.equal(spawnSync(process.execPath, [SCRIPT, '--registry', both, '--project', '/p/']).status, 1);
     const missing = registry(dir, [{ scope: 'user', installPath: join(dir, 'gone'), version: '3' }]);
     assert.equal(spawnSync(process.execPath, [SCRIPT, '--registry', missing]).status, 1);
   } finally {
@@ -175,4 +178,45 @@ test('CLI invoked through a symlinked script still runs and fails closed', () =>
     const r = spawnSync(process.execPath, [link, '--skills-dir', join(dir, 'nonexistent')]);
     assert.equal(r.status, 2);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('registeredInstalls matches --project after normalizing trailing slashes, relative and symlinked paths', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ce-reg-'));
+  try {
+    const project = join(dir, 'proj');
+    mkdirSync(project);
+    const link = join(dir, 'proj-link');
+    symlinkSync(project, link);
+    const path = registry(dir, [
+      { scope: 'project', projectPath: project, installPath: '/ce/3.30.1', version: '3.30.1' },
+      { scope: 'user', installPath: '/ce/3.30.4', version: '3.30.4' },
+    ]);
+    const expected = ['/ce/3.30.1', '/ce/3.30.4'];
+    for (const form of [project, `${project}/`, link, relative(process.cwd(), project)]) {
+      assert.deepEqual(registeredInstalls(path, { project: form }).map((i) => i.installPath).sort(), expected, form);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('CLI exits 2 when the registry lists no CE install at all', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ce-reg-'));
+  try {
+    assert.equal(spawnSync(process.execPath, [SCRIPT, '--registry', registry(dir, [])]).status, 2);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('CLI fallback exits 1 when the newest cached install misses a pin', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ce-reg-'));
+  const cache = mkdtempSync(join(tmpdir(), 'ce-cache-'));
+  const src = fixture(PINS, new Set(['coverage-depth']));
+  try {
+    mkdirSync(join(cache, '3.30.4'));
+    symlinkSync(src, join(cache, '3.30.4', 'skills'));
+    const r = spawnSync(process.execPath, [SCRIPT, '--registry', join(dir, 'absent.json'), '--cache-root', cache], { encoding: 'utf8' });
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /NOTICE/);
+    assert.match(r.stdout, /coverage-depth/);
+  } finally {
+    for (const d of [dir, cache, src]) rmSync(d, { recursive: true, force: true });
+  }
 });
