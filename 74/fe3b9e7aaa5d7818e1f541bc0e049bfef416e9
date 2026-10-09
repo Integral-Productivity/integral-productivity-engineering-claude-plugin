@@ -1,0 +1,21 @@
+agents/fixer.md
+  s_c5f1c0cd0a4cf3::t_63a9fab8bff4f9 9,11,21,29,33,43,47,52,54,63,75,84,86,92,94-95
+agents/verifier.md
+  s_c5f1c0cd0a4cf3::t_0e824935ac22b1 54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74fe3b9e7aaa5d7818e1f541bc0e049bfef416e9",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
