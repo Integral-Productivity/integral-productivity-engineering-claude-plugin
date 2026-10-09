@@ -1,0 +1,22 @@
+tools/check-ce-pins.mjs
+  s_c5f1c0cd0a4cf3::t_57eaab0582171e 14,18-19
+skills/writing-dispatch-prompts/reference/ce-config-pins.md
+  s_c5f1c0cd0a4cf3::t_c35eb07a92a885 148-150
+  s_c5f1c0cd0a4cf3::t_d734200cbd97a0 63-65,75-87,90-93,95-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1801c56deaf062d47f8bf2fa5fdc625305bfbf3b",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
