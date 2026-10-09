@@ -68,7 +68,11 @@ runs low before a rework round stops and is escalated with its last verdict.
 issue number to the files its fixer may edit. When the lead gives one, it is
 the edit boundary. Without one, the scope the admission agent read from the
 issue is shown to the fixer only as an advisory, fenced suggestion, because
-anyone can edit an issue body on a public repo.
+anyone can edit an issue body on a public repo. A malformed `scopeFence` stops
+the workflow before an agent runs, rather than silently falling back to that
+guess. It is malformed if a key is not an issue number, if a value is not
+non-empty text, or if a key is outside `issues` when `issues` is given. A key
+that matches no admitted issue is logged as unused.
 
 ## What it does
 
@@ -82,9 +86,13 @@ anyone can edit an issue body on a public repo.
 2. **Lanes.** Issues that share a likely file are fixed one after another in
    one lane, in admission order, logged as `serialized`. Lanes run side by
    side. Every branch is cut from the same `origin/main` at admission, so a
-   later fixer in a lane does not see the earlier fix. The report marks each
-   such item with `mergeOrder`: merge in that order and rebase each later
-   branch after the earlier one lands.
+   later fixer in a lane does not see the earlier fix. Only the first
+   VERIFIED item of a lane is push-ready; it carries a `mergeOrder` note. A
+   later VERIFIED item in the lane was verified alone. Rebasing it onto the
+   earlier fix makes a new, unverified SHA, so it is reported under
+   `needsReverify`, never `readyToOpen`: once the earlier fix lands, rebase it
+   and run fix-queue on it again. Changing how lanes cut their branches is
+   tracked on #112.
 3. **Fix.** Per issue: the `integral-productivity-engineering:fixer` agent,
    then the `:verifier` agent, each in the issue's own worktree with the
    cd-prefix rule and no EnterWorktree. Neither uses SendMessage. Each returns
@@ -105,8 +113,9 @@ anyone can edit an issue body on a public repo.
      a third round. A VERIFIED verdict for a SHA other than the submitted one
      is also escalated.
 4. **Report.** The workflow returns `readyToOpen` (issue, branch, SHA, base,
-   verified tree, worktree, and `mergeOrder` for a same-file lane) plus
-   `blocked`, `escalated`, `deferred` and `skipped`, each with its reason and
+   verified tree, worktree, and `mergeOrder` for the first item of a
+   same-file lane) plus `needsReverify`, `blocked`, `escalated`, `deferred`
+   and `skipped`, each with its reason and
    SHA where there is one. An error on one item, such as an agent failure or
    an exhausted budget, is recorded as blocked for that item; items that
    already finished in the same lane keep their results.
@@ -213,6 +222,12 @@ Its scenarios:
 20. the "information only" sentence present in fixer and verifier prompts
 21. a duplicate admission reported once as skipped; an unaccounted requested
     issue reported as blocked
+22. in a same-file lane, only the first VERIFIED item push-ready; a later one
+    under `needsReverify`; no marker on a blocked item
+23. six malformed `scopeFence` shapes, and a key outside `issues`, throwing
+    before any agent runs; an unused key logged
+24. a returned key that is not lowercase letters and underscores never
+    relayed to the verifier
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -249,6 +264,10 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   verifier's
 - the "information only" sentence removed
 - a duplicate admission reported as blocked; requested-issue accounting off
+- a later lane item left push-ready; the marker put on every item;
+  `needsReverify` dropped from the report
+- each `scopeFence` check removed, and the unused-key log removed
+- the relayed-key filter removed
 - each of the 15 submission fields made optional. The checks for `sha`,
   `base` and `verified_tree` are equivalent mutants: a missing value still
   fails their 40-character hex check, so behavior does not change

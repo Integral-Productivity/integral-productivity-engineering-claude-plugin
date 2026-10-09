@@ -49,8 +49,19 @@ function requirePath(name, value) {
 requirePath('repoPath', A.repoPath)
 if (A.worktreeRoot !== undefined) requirePath('worktreeRoot', A.worktreeRoot)
 if (A.scratch !== undefined) requirePath('scratch', A.scratch)
-if (A.scopeFence !== undefined && (typeof A.scopeFence !== 'object' || A.scopeFence === null || Array.isArray(A.scopeFence))) {
-  throw new Error('fix-queue needs args.scopeFence as an object of issue number to scope text')
+// The lead's scope fence fails closed: a malformed entry throws rather than
+// silently falling back to the admission agent's issue-derived guess.
+if (A.scopeFence !== undefined) {
+  if (typeof A.scopeFence !== 'object' || A.scopeFence === null || Array.isArray(A.scopeFence)) {
+    throw new Error('fix-queue needs args.scopeFence as an object of issue number to scope text')
+  }
+  for (const [key, value] of Object.entries(A.scopeFence)) {
+    if (!/^[1-9][0-9]*$/.test(key)) throw new Error(`fix-queue needs args.scopeFence keys as issue numbers, not ${JSON.stringify(key)}`)
+    if (typeof value !== 'string' || !value.trim()) throw new Error(`fix-queue needs args.scopeFence[${key}] as non-empty text`)
+    if (Array.isArray(A.issues) && A.issues.length && !A.issues.includes(Number(key))) {
+      throw new Error(`fix-queue: args.scopeFence names #${key}, which is not in args.issues`)
+    }
+  }
 }
 if (A.issues !== undefined && !(Array.isArray(A.issues) && A.issues.every((n) => Number.isInteger(n) && n > 0))) {
   throw new Error('fix-queue needs args.issues as an array of positive integers')
@@ -229,6 +240,11 @@ if (requested) {
   }
 }
 for (const r of rejected) log(`#${r.number}: ${r.reason}`)
+if (A.scopeFence) {
+  for (const key of Object.keys(A.scopeFence)) {
+    if (!admitted.some((it) => String(it.number) === key)) log(`args.scopeFence names #${key}, which was not admitted; its scope is unused`)
+  }
+}
 log(`admitted ${admitted.length}, skipped ${skipped.length}${skipped.length ? `: ${skipped.map((s) => `#${s.number} (${s.reason})`).join(', ')}` : ''}`)
 
 // Lanes: issues that share a predicted file are fixed one after another in one
@@ -411,9 +427,23 @@ const laneResults = await pipeline(lanes, async (lane) => {
       out.push({ number: item.number, outcome: 'blocked', reason: `workflow error: ${error && error.message ? error.message : String(error)}`, branch: item.branch, worktree: item.worktree })
     }
   }
+  // Every branch in a lane was cut from the same origin/main, so only the
+  // first VERIFIED item of a lane is push-ready. A later one was verified
+  // alone: rebasing it onto the earlier fix makes a new, unverified SHA, so it
+  // is reported for re-verification, never as push-ready.
   if (lane.length > 1) {
     const order = lane.map((i) => `#${i.number}`).join(' -> ')
-    for (const r of out) r.mergeOrder = `same-file lane ${order}: every branch was cut from the same origin/main, so merge in this order and rebase each later branch after the earlier one lands`
+    let first = null
+    for (const r of out) {
+      if (r.outcome !== 'verified') continue
+      if (!first) {
+        first = r
+        r.mergeOrder = `first VERIFIED item of same-file lane ${order}; merge it before the others in the lane`
+      } else {
+        r.outcome = 'needs-reverify'
+        r.reason = `verified alone on the shared base; after #${first.number} lands, rebase onto it and run fix-queue again to re-verify before pushing`
+      }
+    }
   }
   return out
 })
@@ -432,11 +462,14 @@ const report = {
     mergeOrder: r.mergeOrder,
     next: 'adversary review, then push and open the PR with Closes #' + r.number,
   })),
+  needsReverify: by('needs-reverify').map((r) => ({
+    issue: r.number, branch: r.branch, sha: r.sha, worktree: r.worktree, reason: r.reason,
+  })),
   blocked: by('blocked').concat(rejected),
   escalated: by('escalated'),
   deferred: by('deferred'),
   skipped,
   note: 'Stopped at VERIFIED. Nothing was pushed and no pull request was opened. Claims (status:in-progress) stay on every admitted issue for the lead to release or carry forward.',
 }
-log(`ready to open ${report.readyToOpen.length}, blocked ${report.blocked.length}, escalated ${report.escalated.length}, deferred ${report.deferred.length}, skipped ${report.skipped.length}`)
+log(`ready to open ${report.readyToOpen.length}, needs re-verify ${report.needsReverify.length}, blocked ${report.blocked.length}, escalated ${report.escalated.length}, deferred ${report.deferred.length}, skipped ${report.skipped.length}`)
 return report
