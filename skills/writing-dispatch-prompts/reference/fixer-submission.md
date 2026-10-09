@@ -12,7 +12,8 @@ Send one message whose first line says which issue and SHA it covers, then:
 - `files` and `counts`: `git diff --stat <base>..<sha>` and `--shortstat`
 - `verification`: each command with its actual result and counts, never just "passing"
 - `tests`: which pin the new behavior (they must fail at the base) and which are regression pins already passing at the base, labeled as such
-- `ce-work result`: the return-to-caller block, verbatim
+- `ce-work result`: the return-to-caller block, verbatim; on a resubmission, every block that covers the submitted work
+- `verified tree`: the git tree ce-work verified, recorded right after its last return for this submission and before any further edit. If ce-work left changes uncommitted, stage exactly its uncommitted `changed_files` by path (as in Process step 6) and record `git write-tree`; if it left nothing, record `git rev-parse HEAD^{tree}`. The submitted SHA's tree (`git rev-parse <sha>^{tree}`) must equal it. A commit that only adds a message keeps them equal; any edit after ce-work returned breaks the match, so make that edit through ce-work and record the new tree. See `ce-work-evidence.md`
 - `plan files`: the absolute path of every plan file you wrote for this submission, kept, plus any non-null `plan_checkpoint` from the return block
 - `acceptance criteria`: each one from the dispatch prompt's ground truth (or the issue, where the dispatch defers to it): where met, or why not
 - `guard changes` (when a guard changed): every input the SHA passes that the base blocks, each with its explanation and any pinning test, or "none"

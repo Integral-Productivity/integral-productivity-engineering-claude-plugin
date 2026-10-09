@@ -137,6 +137,9 @@ base directory:
   fields a fixer's submission must carry, which the verifier checks.
 - [`reference/verifier-verdict.md`](reference/verifier-verdict.md): the
   fields a verifier's verdict carries.
+- [`reference/ce-work-evidence.md`](reference/ce-work-evidence.md): what
+  binds a fixer's submission to its SHA (the `verified tree`), the receipt
+  investigation, and why there is no commit hook.
 - [`reference/guard-code-precedents.md`](reference/guard-code-precedents.md):
   past lead rulings on guard inputs. The one copy; neither profile repeats it.
 - [`reference/ce-config-pins.md`](reference/ce-config-pins.md): the

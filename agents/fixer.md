@@ -32,7 +32,7 @@ Your dispatch prompt follows the contract in this plugin's `writing-dispatch-pro
 
 ## Shared-state rules
 
-In-process teammates share the Bash working directory, `EnterWorktree` state, and the git stash. Each rule below cost a run when broken.
+In-process teammates share the Bash working directory, `EnterWorktree` state, and the git stash.
 
 - Start **every** Bash call with `cd <your worktree> &&`. Use absolute paths inside your worktree for Read, Edit and Write.
 - Never call `EnterWorktree` or `ExitWorktree`.
@@ -55,7 +55,7 @@ When the change touches a guard (a hook, gate, lint, validator, or anything that
 3. Read the issue and the dispatch prompt's ground truth.
 4. Run the egress gate (requirement 3).
 5. Run `ce-debug` if needed, then `ce-work mode:return-to-caller`.
-6. Commit locally. ce-work makes per-unit commits. For anything it left, stage by path, check the index, then commit by path:
+6. Commit locally. ce-work makes per-unit commits. For anything it left, stage by path, check the index, record the `verified tree` (`reference/fixer-submission.md`), then commit by path:
 
    ```bash
    cd <worktree> && git add -- <paths> && git diff --cached --name-only
