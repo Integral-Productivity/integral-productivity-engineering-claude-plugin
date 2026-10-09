@@ -27,25 +27,40 @@ commits every unit itself, the SHA is ce-work's own last commit. When it leaves
 changes for the caller to commit ("canonical commit deferred to caller"), the
 verifier could only match test counts against the block; nothing tied the block
 to the tree under review. The fixer therefore records the tree ce-work
-verified, at the moment it returns:
+verified, as its first act after ce-work returns (fixer requirement 4), before
+any edit, staging or commit:
 
-- ce-work left changes uncommitted: stage exactly its uncommitted
-  `changed_files` by path, then `git write-tree`. Committing those same paths
-  by path (fixer Process step 6) produces a commit with that tree.
-- ce-work left nothing: `git rev-parse HEAD^{tree}`.
+- ce-work left nothing uncommitted: `git rev-parse HEAD^{tree}`.
+- ce-work left changes uncommitted (both shapes occur: return-to-caller.md
+  says ce-work commits each completed unit, yet runs also hand files back):
+  build the tree in a temporary index, so nothing else in the real index
+  counts and the real index is untouched:
+  `T=$(mktemp) && GIT_INDEX_FILE=$T git read-tree HEAD && GIT_INDEX_FILE=$T git add -A -- <uncommitted changed_files> && GIT_INDEX_FILE=$T git write-tree; rm -f "$T"`.
+  Committing those same paths by path (fixer Process step 6) produces a
+  commit with that tree. `add -A` also records a file ce-work deleted.
+
+Recording it at return is what makes it a binding. Recorded at commit time,
+it would hash whatever the working tree held then, so an edit made after ce-work
+returned would be hashed in and match by construction (review of the first
+version, 2026-10-09).
 
 The verifier compares it with `git rev-parse <sha>^{tree}`. A tree hash, not a
 commit hash, so a fixer may still write its own commit message.
 
-Smoke evidence, 2026-10-09, on a throwaway repo (git 2.x), with an unrelated
-untracked file present throughout:
+Smoke evidence, 2026-10-09, on throwaway repos. The first table recorded the
+tree at commit time, as the first version of this gate did. The second uses the
+temporary-index recipe, recorded at return.
 
-| Case | Verified tree | Committed tree | Match |
+| Case (tree recorded at commit time) | Verified tree | Committed tree | Match |
 |---|---|---|---|
 | ce-work committed one unit; the caller staged and committed the leftover file by path | `d11b5fa…` | `d11b5fa…` | yes |
 | ce-work left nothing; `HEAD^{tree}` recorded | `d11b5fa…` | `d11b5fa…` | yes |
-| the caller edited a file after ce-work returned, then committed | `d11b5fa…` | `63003ac…` | **no**: REWORK |
 | a message-only commit after the last recorded tree | `63003ac…` | `63003ac…` | yes |
+
+| Case (tree recorded at return, temporary index) | Verified tree | Committed tree | Match |
+|---|---|---|---|
+| ce-work committed one unit and left one file edited and one deleted; an unrelated file was staged in the real index before the caller committed the two leftovers by path | `d11b5fa…` | `d11b5fa…` | yes |
+| the same, but the caller edited the leftover file after ce-work returned, then committed | `d11b5fa…` | `87c3477…` | **no**: REWORK |
 
 What it proves: the SHA under review is exactly the tree the fixer says ce-work
 verified, so any later edit shows up as a mismatch. What it cannot prove: that
