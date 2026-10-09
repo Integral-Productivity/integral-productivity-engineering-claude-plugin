@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.17.0...v0.17.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* cite internal repos generically and lint for them in this public plugin ([#121](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/121)) ([9020018](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/90200182706f1e7abe18b23e25a384255a4c3215))
+
 ## [0.17.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.16.0...v0.17.0) (2026-10-09)
 
 
