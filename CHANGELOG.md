@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.17.1...v0.18.0) (2026-10-09)
+
+
+### Features
+
+* **writing-dispatch-prompts:** start chips in a Herdr pane, with the scoped MCP roster ([#125](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/125)) ([98bf0c4](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/98bf0c4add07db8789584b0201c8239d0b0872c8))
+
 ## [0.17.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.17.0...v0.17.1) (2026-10-09)
 
 
