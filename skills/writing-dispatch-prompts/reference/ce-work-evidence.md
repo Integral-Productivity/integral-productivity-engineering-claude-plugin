@@ -16,15 +16,19 @@ REWORK unless all of these hold:
 2. Each block's `status` is `complete`. A `blocked` or `failed` block means the
    fixer should have stopped and reported (fixer requirement 1), not submitted.
 3. Containment runs both ways:
-   - every file in `git diff --name-only <base>..<sha>` appears in the
-     `changed_files` of one of the submitted blocks; a file outside them was
-     changed outside ce-work;
-   - every path in every submitted block's `changed_files` appears in that
-     diff. A path missing from it was left out of the commit, for example an
-     uncommitted deletion the fixer did not stage. The one legitimate gap is a
-     path a later block reverts back to its state at `<base>`: the submission
-     names it, and the verifier confirms that path is identical at `<base>` and
-     `<sha>`.
+   - every file in `git diff --no-renames --name-only <base>..<sha>` appears
+     in the `changed_files` of one of the submitted blocks; a file outside
+     them was changed outside ce-work;
+   - every path in every submitted block's `changed_files` appears in
+     `git diff --no-renames --name-only <base>..<sha>`. A path missing from it
+     was left out of the commit, for example an uncommitted deletion the fixer
+     did not stage. There is no exception: a path that ends the range
+     unchanged from `<base>` also fails, and that false REWORK is accepted as
+     the fail-closed direction (lead ruling, 2026-10-09).
+
+   `--no-renames` lists a rename as its deletion and its addition, so both
+   the old and the new path are compared; with rename detection on, only the
+   new path would be listed.
 4. `git rev-parse '<sha>^{tree}'` equals the submission's `verified tree`.
    Quote the rev: unquoted, `^{tree}` fails under zsh's `extendedglob`.
 
