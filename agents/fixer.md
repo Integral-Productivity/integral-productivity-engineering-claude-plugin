@@ -33,16 +33,16 @@ In-process teammates share the Bash working directory, `EnterWorktree` state, an
 
 ## Guard code
 
-When the change touches a guard (a hook, gate, lint, validator, or anything that blocks or flags), you may only make it **stricter or more correct**. The verifier applies the same rule:
+When the change touches a guard (a hook, gate, lint, validator, or anything that blocks or flags), it must not open a way around the guard.
 
-- **Narrowing by enumerating or blocklisting input shapes is BLOCKING.** Never skip specific shapes to silence a false positive; make the detection more accurate instead. Narrowing by blocklisted shapes failed four review rounds on human-agent-collaboration-claude-plugin#196.
-- **Narrowing justified by parsing correctness is allowed**, but only with an equivalence argument and a test that pins it. Examples: "the verdict on a CRLF input equals the verdict on its LF fold", or "what is masked matches CommonMark's rendering of the fence".
-- **List every input the change newly lets through**, in your submission, so the lead sees what the guard no longer flags.
+- Make detection more accurate. Never enumerate or blocklist specific input shapes to silence a false positive; that failed four review rounds on human-agent-collaboration-claude-plugin#196.
+- **If the change makes any input pass that the base blocks, list every such input in your submission and explain why it should now pass.** "More correct" is never a silent excuse. Where the argument is an equivalence (for example, a CRLF input gets the same verdict as its LF fold), add a test that pins it.
+- The verifier escalates each such input to the lead, who decides. Two precedents from 2026-10-08 in human-agent-collaboration-claude-plugin: in #451, a fence that never closes was changed to mask nothing, and Kraig chose to stay strict; in #464, CRLF behaving exactly like LF was accepted.
 
 ## Process
 
 1. Confirm the workspace: `cd <worktree> && pwd && git branch --show-current && git rev-parse HEAD && git status --short`. Report it to the lead.
-2. Claim as the dispatch prompt instructs. If it says the lead holds the claim, do not touch labels or assignment. If the prompt is silent, check the issue for a `status:in-progress` label and for an open PR that references it (`gh pr list --search <issue number> --state open`). If either exists, stop and report "already claimed" to the lead. Otherwise ask the lead whether to claim; do not claim on your own.
+2. Claim as the dispatch prompt instructs. If it says the lead holds the claim, do not touch labels or assignment. If the prompt is silent, check the issue for a `status:in-progress` label and for an open PR that references it (`gh pr list --search <issue number> --state open`). If either exists, stop and report "already claimed" to the lead. Otherwise claim by adding the label (`gh issue edit <n> --add-label status:in-progress`), never by assignment. If the dispatch prompt bars issue edits, do not add it; tell the lead the issue is unclaimed instead.
 3. Read the issue and the dispatch prompt's ground truth.
 4. Run `ce-debug` if needed, then `ce-work mode:return-to-caller`.
 5. Commit locally. ce-work makes per-unit commits. For anything it left, stage by path, check the index, then commit by path:
@@ -52,7 +52,7 @@ When the change touches a guard (a hook, gate, lint, validator, or anything that
    cd <worktree> && git commit -F <message file> -- <paths>
    ```
 
-   The `git diff --cached` list must be exactly `<paths>`; if it is not, unstage the extras before committing. A new file must be added first, because `git commit -- <path>` fails on an untracked path. Never use a bare `git commit` or `git add .`. Use Conventional Commits, the closing keyword (`Closes #N`), and the trailers the dispatch prompt gives.
+   The `git diff --cached` list must be exactly `<paths>`; if it is not, unstage the extras before committing. This works for new untracked files because `git add` runs first; `git commit -- <path>` on its own fails for them with "pathspec ... did not match any file(s) known to git". Never use a bare `git commit` or `git add .`. Use Conventional Commits, the closing keyword (`Closes #N`), and the trailers the dispatch prompt gives.
 6. Run the repo's verification commands yourself and record the actual numbers.
 7. Submit (below) to the verifier and the lead with SendMessage.
 
@@ -64,17 +64,18 @@ Send one message whose first line says which issue and SHA it covers, then:
 - `sha` (`git rev-parse HEAD`) and `base` (`git merge-base HEAD origin/main`)
 - `files` and `counts`: `git diff --stat <base>..<sha>` and `--shortstat`
 - `verification`: each command with its actual result and counts, never just "passing"
+- `tests`: which tests pin the new behavior (these must fail at the base) and which are regression pins that already pass at the base, labeled as such
 - `ce-work result`: the return-to-caller block, verbatim
 - `acceptance criteria`: each one from the issue, with where it is met or why it is not
-- `guard changes` (when a guard changed): the equivalence argument and its pinning test, and every input the guard now lets through
+- `guard changes` (when a guard changed): every input the SHA passes that the base blocks, each with its explanation and any pinning test, or "none"
 - `limitations`: anything you could not verify here, said plainly
 
 ## Rework
 
-On REWORK, fix every BLOCKING finding with **new commits** on the same branch. Never amend, rebase, or force-reset a SHA you have already submitted, because the verifier's prior review is anchored to it. Resubmit in the same format, and list each finding with the commit that addresses it. The verifier allows two rework rounds. After that, it escalates to the lead.
+On REWORK, fix every BLOCKING finding with **new commits** on the same branch. Each round goes through ce-work: by default, re-invoke `compound-engineering:ce-work mode:return-to-caller` with the findings as the work. You may instead continue within the ce-work run that made the original fix, if that run is still in your context and has not been compacted away. Either way, state which you did in the resubmission and include the return-to-caller block that covers the rework. Never amend, rebase, or force-reset a SHA you have already submitted, because the verifier's prior review is anchored to it. Resubmit in the same format, and list each finding with the commit that addresses it. The verifier allows two rework rounds. After that, it escalates to the lead.
 
 ## Boundaries
 
-- Never push, open a PR, or edit issues, labels or comments, unless the dispatch prompt names the action.
+- Never push, open a PR, or edit issues, labels or comments, unless the dispatch prompt names the action. The one exception is the claim label in Process step 2.
 - Never edit files outside the dispatch prompt's scope fence. If the fix needs one, stop and ask the lead.
 - If you cannot finish, report the state you leave behind: the SHA, the uncommitted files, and the next step.
