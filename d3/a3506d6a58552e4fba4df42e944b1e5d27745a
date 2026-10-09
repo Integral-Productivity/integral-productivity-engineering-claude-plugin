@@ -1,0 +1,21 @@
+agents/verifier.md
+  s_c5f1c0cd0a4cf3::t_953be3fd34c28c 50
+skills/writing-dispatch-prompts/reference/ce-work-evidence.md
+  s_c5f1c0cd0a4cf3::t_97ae8c3550d248 19-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d3a3506d6a58552e4fba4df42e944b1e5d27745a",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
