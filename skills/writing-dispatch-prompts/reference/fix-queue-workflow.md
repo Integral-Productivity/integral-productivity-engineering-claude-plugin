@@ -48,7 +48,8 @@ Workflow({
     maxFixes: 1,
     verification: "<the repo's verification commands>",
     trailers: "<commit trailers>",
-    scratch: "<absolute scratch directory for plan files>"
+    scratch: "<absolute scratch directory for plan files and the verifier>",
+    scopeFence: { "123": "<files the fixer may edit>" }
   }
 })
 ```
@@ -59,9 +60,15 @@ must be absolute paths of letters, digits, `.`, `_`, `-` and `/` only, with no
 `..` (no spaces); `issues` must be positive integers. Anything else stops the
 workflow before an agent runs.
 Without `issues`, it considers every open `ready-for-agent` issue, oldest
-first. `maxFixes` defaults to 3. When the turn has a `+Nk` token budget, a fix
-does not start with less than `minBudgetPerFix` (default 150,000) left and is
-reported as deferred. `worktreeRoot` defaults to `<repoPath>/.claude/worktrees`.
+first. `maxFixes` defaults to 3. When the turn has a `+Nk` token budget, the
+budget is checked before every round: a fix with less than `minBudgetPerFix`
+(default 150,000) left does not start and is reported as deferred, and one that
+runs low before a rework round stops and is escalated with its last verdict.
+`worktreeRoot` defaults to `<repoPath>/.claude/worktrees`. `scopeFence` maps an
+issue number to the files its fixer may edit. When the lead gives one, it is
+the edit boundary. Without one, the scope the admission agent read from the
+issue is shown to the fixer only as an advisory, fenced suggestion, because
+anyone can edit an issue body on a public repo.
 
 ## What it does
 
@@ -73,7 +80,11 @@ reported as deferred. `worktreeRoot` defaults to `<repoPath>/.claude/worktrees`.
    `claude/fix-<n>-<slug>` from `origin/main`, and records the base SHA, the
    files the fix will likely touch, the ground truth and the scope fence.
 2. **Lanes.** Issues that share a likely file are fixed one after another in
-   one lane, logged as `serialized`. Lanes run side by side.
+   one lane, in admission order, logged as `serialized`. Lanes run side by
+   side. Every branch is cut from the same `origin/main` at admission, so a
+   later fixer in a lane does not see the earlier fix. The report marks each
+   such item with `mergeOrder`: merge in that order and rebase each later
+   branch after the earlier one lands.
 3. **Fix.** Per issue: the `integral-productivity-engineering:fixer` agent,
    then the `:verifier` agent, each in the issue's own worktree with the
    cd-prefix rule and no EnterWorktree. Neither uses SendMessage. Each returns
@@ -82,16 +93,23 @@ reported as deferred. `worktreeRoot` defaults to `<repoPath>/.claude/worktrees`.
      (`fixer-submission.md`). A submission missing one is sent back as a
      REWORK round and never reaches the verifier.
    - **The verifier's dispatch is generated from the fixer's submission.**
-     Every field the fixer returned is relayed verbatim: the ce-work blocks,
-     the verified tree, egress control, tests (fail-before evidence),
-     verification and the rest. It is never written by hand.
+     Every key the fixer returned is relayed verbatim, each in its own data
+     fence: the ce-work blocks, the verified tree, egress control, tests
+     (fail-before evidence), verification and the rest. Keys are taken from
+     the returned object, not a fixed list, so a field added later is never
+     silently dropped. The dispatch is never written by hand. The verifier's
+     header also names the main checkout and the scratch directory, which its
+     profile needs for its own detached worktrees.
    - At most 2 rework rounds. A review still at REWORK after round 2, or a
      `LEAD DECISION` or `ESCALATE` verdict, ends the item as escalated, never
      a third round. A VERIFIED verdict for a SHA other than the submitted one
      is also escalated.
 4. **Report.** The workflow returns `readyToOpen` (issue, branch, SHA, base,
-   verified tree, worktree) plus `blocked`, `escalated`, `deferred` and
-   `skipped`, each with its reason and SHA where there is one.
+   verified tree, worktree, and `mergeOrder` for a same-file lane) plus
+   `blocked`, `escalated`, `deferred` and `skipped`, each with its reason and
+   SHA where there is one. An error on one item, such as an agent failure or
+   an exhausted budget, is recorded as blocked for that item; items that
+   already finished in the same lane keep their results.
 
 ## Fail-closed and injection rules
 
@@ -142,7 +160,7 @@ The script was not run against GitHub. A stub harness ran its body with fake
 - every phase title used matches `meta.phases`
 - none of the forbidden calls (`Date.now`, `Math.random`, `new Date()`, Node APIs) appear
 
-It ran 12 scenarios:
+It ran 14 scenarios:
 
 1. VERIFIED, with every submission field relayed into the verifier's dispatch
 2. REWORK, then VERIFIED
@@ -157,8 +175,19 @@ It ran 12 scenarios:
 10. an injected fence closer from an issue, which is defanged
 11. bad args rejected before any agent runs, and shell arguments quoted
 12. admission output rejected when unrequested, malformed or over the cap
+13. a LEAD DECISION escalated with no rework round; skipped items present in
+    the report; the admission claim by label, never assignment; VERIFIED
+    with an empty SHA escalated; 2 of 3 run under `maxFixes: 2`; a throw on
+    the second item of a lane keeping the first item's VERIFIED result; the
+    budget checked before a rework round
+14. the lead's scope fence winning over the admission guess; the guess shown
+    as advisory; an unlisted returned field still relayed; the main checkout
+    in the header; a merged lane keeping admission order
 
-Fourteen mutants were each killed:
+The stub `pipeline()` drops an item whose stage throws to `null`, as the
+runtime does.
+
+Twenty-three mutants were each killed. Each was checked to load and to fail on an assertion, not on a syntax error:
 
 - a third rework round allowed
 - the missing-field check removed
@@ -174,5 +203,14 @@ Fourteen mutants were each killed:
 - the base check dropped
 - the title left unfenced
 - the admission cap check dropped
+- a LEAD DECISION reworked
+- `skipped` dropped from the report
+- the admission prompt assigning instead of labelling
+- the per-item catch in a lane removed
+- the budget checked only before round 0
+- the lead's scope fence ignored
+- only a fixed field list relayed
+- lane order reversed
+- the main checkout dropped from the header
 
 The first real run is the lead's one-issue acceptance run.
