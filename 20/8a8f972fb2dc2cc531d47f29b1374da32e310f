@@ -1,0 +1,33 @@
+agents/fixer.md
+  s_c5f1c0cd0a4cf3::t_76baca72b48707 11-13,23,25-28,30,40,49,71,75,77
+agents/verifier.md
+  s_c5f1c0cd0a4cf3::t_9a4bff57ed77e9 13-14,17,19,24-25,27,34-40,43,47,50,52-54,64,76,86
+skills/writing-dispatch-prompts/SKILL.md
+  s_c5f1c0cd0a4cf3::t_4d0acc64b3facc 129-143
+skills/writing-dispatch-prompts/reference/ce-config-pins.md
+  s_c5f1c0cd0a4cf3::t_4e113477656631 1-60
+skills/writing-dispatch-prompts/reference/fixer-submission.md
+  s_c5f1c0cd0a4cf3::t_253efee46a0031 1-24
+skills/writing-dispatch-prompts/reference/guard-code-precedents.md
+  s_c5f1c0cd0a4cf3::t_953b0dfe729ecb 3-6,24-30
+tools/check-ce-pins.mjs
+  s_c5f1c0cd0a4cf3::t_1f345f24d41385 1-141
+tools/check-ce-pins.test.mjs
+  s_c5f1c0cd0a4cf3::t_4f0467bba0e2ad 1-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "208a8f972fb2dc2cc531d47f29b1374da32e310f",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
