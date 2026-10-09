@@ -220,3 +220,17 @@ test('CLI fallback exits 1 when the newest cached install misses a pin', () => {
     for (const d of [dir, cache, src]) rmSync(d, { recursive: true, force: true });
   }
 });
+
+test('CLI exits 2 when --project is given and the registry cannot be read', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ce-reg-'));
+  const cache = mkdtempSync(join(tmpdir(), 'ce-cache-'));
+  const src = fixture(PINS);
+  try {
+    mkdirSync(join(cache, '3.30.4'));
+    symlinkSync(src, join(cache, '3.30.4', 'skills'));
+    const r = spawnSync(process.execPath, [SCRIPT, '--registry', join(dir, 'absent.json'), '--cache-root', cache, '--project', dir], { encoding: 'utf8' });
+    assert.equal(r.status, 2);
+  } finally {
+    for (const d of [dir, cache, src]) rmSync(d, { recursive: true, force: true });
+  }
+});

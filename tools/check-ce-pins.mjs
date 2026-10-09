@@ -209,6 +209,10 @@ function main(argv) {
     return report(values['skills-dir'], 'check-ce-pins') ? 0 : 1;
   }
   const installs = registeredInstalls(values.registry ?? DEFAULT_REGISTRY, { project: values.project });
+  if (installs === null && values.project !== undefined) {
+    console.error(`check-ce-pins: the plugin registry could not be read, so the CE that ${values.project} runs is unknown; nothing was verified`);
+    return 2;
+  }
   if (installs === null) {
     const newest = findInstalledSkillsDir(values['cache-root'] ?? DEFAULT_CACHE_ROOT);
     if (!newest) {
