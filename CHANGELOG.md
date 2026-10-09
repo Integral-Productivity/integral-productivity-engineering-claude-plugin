@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.14.1...v0.15.0) (2026-10-09)
+
+
+### Features
+
+* **agents:** fixer and verifier profiles that require the ce-* toolchain per fix ([#94](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/94)) ([5220db7](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/5220db710c2a5d157700124bb1143adc4c43365a))
+
 ## [0.14.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.14.0...v0.14.1) (2026-10-07)
 
 
