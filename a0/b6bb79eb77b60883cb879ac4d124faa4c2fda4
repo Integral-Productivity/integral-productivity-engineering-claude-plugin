@@ -1,0 +1,33 @@
+agents/fixer.md
+  s_c5f1c0cd0a4cf3::t_6f1e5310c6ea71 13
+agents/verifier.md
+  s_c5f1c0cd0a4cf3::t_d544b2939e2b79 13,24-25,40,68
+skills/writing-dispatch-prompts/SKILL.md
+  s_c5f1c0cd0a4cf3::t_79fa30d6818091 138-139,144-146
+skills/writing-dispatch-prompts/reference/ce-config-pins.md
+  s_c5f1c0cd0a4cf3::t_353ce753ad0461 27-40,61-86
+skills/writing-dispatch-prompts/reference/gitleaks.toml
+  s_c5f1c0cd0a4cf3::t_fb88c29a32f129 1-7
+skills/writing-dispatch-prompts/reference/verifier-verdict.md
+  s_c5f1c0cd0a4cf3::t_c486d0bac8eda3 1-15
+tools/check-ce-pins.mjs
+  s_c5f1c0cd0a4cf3::t_78e36e6b6a112c 7-8,11-18,21,25,76-81,130-169,172-185,188-222,226
+tools/check-ce-pins.test.mjs
+  s_c5f1c0cd0a4cf3::t_bc81e113238d53 3,8,60,64-65,87,92-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a0b6bb79eb77b60883cb879ac4d124faa4c2fda4",
+  "prompts": {},
+  "sessions": {
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
