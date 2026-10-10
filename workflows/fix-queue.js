@@ -220,6 +220,7 @@ const wanted = candidates
   : 'every open issue labelled `ready-for-agent`, oldest first'
 
 // No candidate left: no admission agent runs, so nothing is claimed.
+if (candidates && candidates.length === 0) log('no admission agent ran: args.scopeFence names none of the candidate issues, so nothing was claimed')
 const admission = candidates && candidates.length === 0 ? { admitted: [], skipped: [] } : await agent(
   `You are the admission step of the fix-queue workflow for ${A.repo}, whose main checkout is '${A.repoPath}'. You do not implement anything.
 
@@ -276,10 +277,11 @@ for (const it of admission.admitted || []) {
   else admitted.push(it)
 }
 // A requested issue outside args.scopeFence never reached admission: it is
-// reported once, as skipped, unless the admission agent returned it anyway
-// (then it is already under blocked, and may carry the claim label).
+// reported once, as skipped, unless the admission agent returned it anyway.
+// Returned as admitted, it is already under blocked (and may carry the claim
+// label); listed under the agent's own skipped, it keeps that one entry.
 for (const n of fencedOut) {
-  if (!rejected.some((r) => r.number === n)) skipped.push({ number: n, reason: 'args.scopeFence does not name this issue; not sent to admission, so not claimed, branched or counted against maxFixes', outcome: 'skipped' })
+  if (!rejected.some((r) => r.number === n) && !skipped.some((s) => s.number === n)) skipped.push({ number: n, reason: 'args.scopeFence does not name this issue; not sent to admission, so not claimed, branched or counted against maxFixes', outcome: 'skipped' })
 }
 // Every requested issue is accounted for: one the admission agent dropped
 // (it may already carry the claim label) is reported, not lost.

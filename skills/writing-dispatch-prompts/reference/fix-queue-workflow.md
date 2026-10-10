@@ -78,9 +78,11 @@ names (those in `issues`, in that order, or, without `issues`, the fenced
 issues in ascending order instead of the backlog sweep). An issue in `issues`
 that the fence does not name is never claimed, branched or counted against
 `maxFixes`; it is reported once under `skipped`. If no issue is left, no
-admission agent runs. An issue the admission agent returns anyway is not
-fixed and never gets the guessed scope: it is reported under `blocked`,
-because it may carry the claim label. A malformed `scopeFence` stops
+admission agent runs, and the log says so. An issue the admission agent
+returns anyway is not fixed and never gets the guessed scope, and it is still
+reported exactly once: returned as admitted, under `blocked`, because it may
+carry the claim label; listed under the agent's own skipped, with the
+agent's reason. A malformed `scopeFence` stops
 the workflow before an agent runs, rather than silently falling back to that
 guess. It is malformed if a key is not an issue number, if a value is not
 non-empty text, or if a key is outside `issues` when `issues` is given. A key
@@ -284,11 +286,15 @@ Its scenarios:
 37. with `scopeFence` and no `issues`, the fenced issues in ascending order
     as the candidates, not the backlog sweep; a dropped fenced candidate
     accounted for
-38. a `scopeFence` naming none of `issues`: no admission agent runs
+38. a `scopeFence` naming none of `issues`: no admission agent runs, and the
+    log says why
 39. every SHA trimmed in escalated and blocked results and their history (a
     rework cap, a LEAD DECISION, a VERIFIED for another SHA, a VERIFIED with a
     BLOCKING finding or without a findings list, a blocked fixer, a null
     verdict, a budget stop), and in the VERIFIED log line
+40. an unfenced issue in `issues` that the admission agent returns anyway
+    reported exactly once: under `blocked` when returned as admitted, with the
+    agent's reason when listed under its own skipped (issue #114)
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -343,6 +349,8 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
 - for issue #114: the fence ignored when building the admission candidates;
   the candidate set taken from `issues` instead; the skip for an unfenced
   issue removed; the no-candidate guard removed; a raw SHA in the VERIFIED
-  log line; `shaText()` returning the untrimmed SHA
+  log line; `shaText()` returning the untrimmed SHA; either half of the
+  once-only check for an unfenced issue the agent returned anyway removed;
+  the no-admission log line removed
 
 The first real run is the lead's one-issue acceptance run.

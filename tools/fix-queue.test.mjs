@@ -356,9 +356,10 @@ test('37. with scopeFence and no issues, the candidates are the fenced issues, n
   assert.ok(lost.report.blocked.some((b) => b.number === 91 && /did not account for it/.test(b.reason)), 'a fenced candidate the admission step drops is accounted for');
 });
 test('38. scopeFence naming none of the issues runs no admission agent at all', async () => {
-  const { report, prompts } = await scenario('fencenone', { admitted: [item(77, ['a'])], args: { issues: [77], scopeFence: {} }, fixer: () => assert.fail('must not run'), verifier: () => assert.fail() });
+  const { report, prompts, logs } = await scenario('fencenone', { admitted: [item(77, ['a'])], args: { issues: [77], scopeFence: {} }, fixer: () => assert.fail('must not run'), verifier: () => assert.fail() });
   assert.equal(prompts.length, 0, 'no agent ran, so nothing was claimed');
   assert.deepEqual(report.skipped.map((s) => s.number), [77]);
+  assert.ok(logs.some((l) => /no admission agent ran/.test(l) && /scopeFence/.test(l)), 'the log says why no admission ran');
 });
 test('39. every SHA in escalated, blocked and history entries, and in the log, is trimmed', async () => {
   const pad = (tag) => ({ sha: ` ${H(tag)}\n`, base: `${'b'.repeat(40)} `, verified_tree: `\t${H('t' + tag)} ` });
@@ -384,6 +385,25 @@ test('39. every SHA in escalated, blocked and history entries, and in the log, i
   for (const sha of shasOf(budgetCase.report.escalated[0])) assert.match(sha, /^[0-9a-f]{40}$/, 'budget stop: trimmed SHA');
   const ok = await scenario('trim-log', { admitted: [item(80, ['a'])], fixer: (n) => SUB(n, 's80', pad('s80')), verifier: () => ({ verdict: 'VERIFIED', sha: H('s80'), findings: [], report_text: 'ok' }) });
   assert.ok(ok.logs.some((l) => l.includes(`VERIFIED at ${H('s80')} after`)), 'the VERIFIED log line carries the trimmed SHA');
+});
+test('40. an unfenced requested issue the admission agent returns anyway is reported exactly once', async () => {
+  const fenceArgs = { issues: [75, 76], scopeFence: { 76: 'src/b.js' } };
+  const fix = (n) => SUB(n, `s${n}`);
+  const ver = (n) => ({ verdict: 'VERIFIED', sha: H(`s${n}`), findings: [], report_text: 'ok' });
+  const reportsOf = (report, n) => [...report.blocked, ...report.skipped, ...report.escalated].filter((r) => r.number === n);
+  // (a) returned under admitted: once, as blocked, never also as a fence skip.
+  const a = await scenario('fenceadmitted', { admitted: [item(75, ['a']), item(76, ['b'])], args: fenceArgs, fixer: fix, verifier: ver });
+  const a75 = reportsOf(a.report, 75);
+  assert.equal(a75.length, 1, `#75 reported once, got ${JSON.stringify(a75)}`);
+  assert.equal(a75[0].outcome, 'blocked');
+  assert.match(a75[0].reason, /not one of the requested issues/);
+  assert.deepEqual(a.report.readyToOpen.map((r) => r.issue), [76]);
+  // (b) listed under the agent's own skipped: once, with the agent's reason.
+  const b = await scenario('fenceskipped', { admitted: [item(76, ['b'])], skipped: [{ number: 75, reason: 'agent reason' }], args: fenceArgs, fixer: fix, verifier: ver });
+  const b75 = reportsOf(b.report, 75);
+  assert.equal(b75.length, 1, `#75 reported once, got ${JSON.stringify(b75)}`);
+  assert.equal(b75[0].outcome, 'skipped');
+  assert.match(b75[0].reason, /agent reason/);
 });
 
 // Lead-requested round after the adversary review: S1-S5, N1, N2.
