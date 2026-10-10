@@ -76,8 +76,8 @@ bash -u <<'PRE_EGRESS'
 WT='<wt>' BASE='<base>' SHA='<sha>' REF='<ref>' SCAN='<scan>'
 case "$BASE$SHA" in *[!0-9a-f]*) echo 'PRE-EGRESS: SHA not full hex'; exit 14 ;; esac
 [ ${#BASE} -eq 40 ] && [ ${#SHA} -eq 40 ] || { echo 'PRE-EGRESS: SHA not 40 characters'; exit 14; }
-W=$(cd "$WT" && pwd -P) || exit 11; C=$(cd "$REF/reference" && pwd -P) || exit 16
-D=$C; while :; do [ "$D" -ef "$W" ] && { echo 'PRE-EGRESS: reference dir inside reviewed worktree'; exit 15; }; [ "$D" = / ] && break; D=$(dirname "$D"); done
+W=$(cd "$WT" && pwd -P) || exit 11; R=$(cd "$REF" && pwd -P) && C=$(cd "$REF/reference" && pwd -P) || exit 16
+for D in "$R" "$C"; do while :; do [ "$D" -ef "$W" ] && { echo 'PRE-EGRESS: reference dir inside reviewed worktree'; exit 15; }; [ "$D" = / ] && break; D=$(dirname "$D"); done; done
 [ -L "$C/gitleaks.toml" ] && { echo 'PRE-EGRESS: gitleaks config is a symlink'; exit 15; }
 test -r "$C/gitleaks.toml" || { echo 'PRE-EGRESS: gitleaks config unreadable'; exit 16; }
 mkdir -p "$SCAN/empty" || exit 10
@@ -110,7 +110,7 @@ process fed by the quoted heredoc, every fallible step carries an explicit
 |---|---|
 | 0 with the marker | clean: every step succeeded and gitleaks found nothing |
 | 14 | `<base>` or `<sha>` is not a full 40-character lowercase hex SHA |
-| 15 | `<ref>/reference`, resolved and compared by inode, lies inside the reviewed worktree, or its `gitleaks.toml` is a symlink, so the branch could supply the scan's own config |
+| 15 | `<ref>` or `<ref>/reference`, resolved and compared by inode, lies inside the reviewed worktree, or its `gitleaks.toml` is a symlink, so the branch could supply the scan's own config |
 | 16 | `<ref>` or its `reference/gitleaks.toml` cannot be read |
 | 10 | the scratch directory could not be created |
 | 11 | `<wt>` cannot be entered, or the names `git` step failed: a bad `<wt>`, `<base>` or `<sha>` |
