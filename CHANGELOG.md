@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.5](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.4...v0.18.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* **fix-queue:** run the adversarial lens in the workflow; a field-only REWORK doesn't use a round ([#152](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/152)) ([8635041](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/86350411c08a4f0a8f51ba4b2bf3a4430e383ba2))
+
 ## [0.18.4](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.3...v0.18.4) (2026-10-10)
 
 
