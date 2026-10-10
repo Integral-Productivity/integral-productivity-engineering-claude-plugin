@@ -430,20 +430,34 @@ Read-only: no file edits, no git command that writes (no commit, checkout, switc
 }
 
 // Fails closed: anything but a review of the submitted SHA with a findings list
-// counts as not run, and the verifier is told the lens is missing.
+// counts as not run, and the verifier is told the lens is missing. The reason
+// is reached by the verifier's prompt outside any fence, so it is fixed text
+// plus shaText() values only, never anything the reviewer or an error wrote.
 async function adversarialPass(item, submission, round) {
   let review
   try {
     review = await agent(reviewerPrompt(item, submission), { label: `reviewer #${item.number} r${round}`, phase: 'Fix', schema: REVIEW_SCHEMA })
   } catch (error) {
-    return { ran: false, reason: `the reviewer agent failed: ${clean(error && error.message ? error.message : String(error), 200)}` }
+    // The message goes to the log only, with < and > escaped as well.
+    log(`#${item.number}: reviewer agent error: ${clean(error && error.message ? error.message : String(error), 200).replace(/[<>]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)}`)
+    return { ran: false, reason: 'the reviewer agent failed' }
   }
   if (!review) return { ran: false, reason: 'the reviewer agent returned nothing' }
   if (typeof review.sha !== 'string' || review.sha.trim() !== submission.sha.trim()) {
-    return { ran: false, reason: `it reviewed ${clean(JSON.stringify(review.sha), 80)}, not the submitted ${shaText(submission.sha)}` }
+    return { ran: false, reason: `it reviewed ${shaText(review.sha)}, not the submitted ${shaText(submission.sha)}` }
   }
   if (!Array.isArray(review.findings)) return { ran: false, reason: 'it returned no findings list' }
   return { ran: true, review }
+}
+
+// The report's record of the pass: counts by severity, computed here, so a
+// BLOCKING finding the verifier dismissed still shows. No agent text.
+function adversarialRecord(adversarial) {
+  if (!adversarial.ran) return clean(`not run: ${adversarial.reason}`, 300)
+  const count = (severity) => adversarial.review.findings.filter((f) => f && f.severity === severity).length
+  const known = ['BLOCKING', 'SHOULD-FIX', 'NOTE']
+  const other = adversarial.review.findings.length - known.reduce((sum, severity) => sum + count(severity), 0)
+  return `ran: ${known.map((severity) => `${count(severity)} ${severity}`).join(', ')}${other ? `, ${other} other` : ''}`
 }
 
 function reviewDepthText(item, submission, adversarial) {
@@ -569,7 +583,7 @@ async function fixOne(item) {
         return { number: item.number, outcome: 'escalated', reason: `verifier returned VERIFIED with ${blocking.length} BLOCKING finding(s)`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
       }
       log(`${label}: VERIFIED at ${shaText(submission.sha)} after ${round} rework round(s)`)
-      return { number: item.number, outcome: 'verified', sha: submission.sha.trim(), base: submission.base.trim(), verified_tree: submission.verified_tree.trim(), branch: item.branch, worktree: item.worktree, coverage: clean(verdict.coverage || '(not reported)', 300), adversarial_review: adversarial.ran ? 'ran' : clean(`not run: ${adversarial.reason}`, 300), history }
+      return { number: item.number, outcome: 'verified', sha: submission.sha.trim(), base: submission.base.trim(), verified_tree: submission.verified_tree.trim(), branch: item.branch, worktree: item.worktree, coverage: clean(verdict.coverage || '(not reported)', 300), adversarial_review: adversarialRecord(adversarial), history }
     }
     if (verdict.verdict !== 'REWORK') {
       return { number: item.number, outcome: 'escalated', reason: `${clean(verdict.verdict, 40)}: ${clean(verdict.report_text)}`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }

@@ -148,7 +148,8 @@ that matches no admitted issue is logged as unused.
    an exhausted budget, is recorded as blocked for that item; items that
    already finished in the same lane keep their results. `readyToOpen` and
    `needsReverify` also carry the verifier's `coverage` and the workflow's
-   own `adversarial_review` record (`ran`, or `not run: <reason>`), so a
+   own `adversarial_review` record (`ran: <b> BLOCKING, <s> SHOULD-FIX, <n> NOTE`,
+   or `not run: <reason>`), so a
    degraded review is visible before anything is pushed. A field-only retry
    shows in `history` with `fieldRetry: true`. Every reason, coverage and history
    field is agent-authored. In the report and in log lines it is shown through
@@ -184,9 +185,19 @@ So the review behind a fix-queue VERIFIED is:
 When the pass throws, returns nothing, reviews a SHA other than the submitted
 one, or returns no findings list, it counts as not run. The verifier's
 dispatch then says the adversarial lens is missing and that `coverage` must
-say the review was degraded, with the reason. The report records the pass
-either way, as `adversarial_review`, which does not depend on the verifier's
-wording. This is shallower than an interactive verifier, whose
+say the review was degraded, with the reason. That reason sits in the
+verifier's prompt outside any fence, so it is one of four fixed texts (the
+agent failed, returned nothing, reviewed another commit, returned no findings
+list) plus SHAs that are full hex ids. Nothing the reviewer or an error wrote
+reaches it; a thrown error's message goes only to the log, with `<` and `>`
+escaped.
+
+The report records the pass either way, as `adversarial_review`, which does
+not depend on the verifier's wording. When the pass ran, it carries the
+count of its findings by severity, computed by the workflow, for example
+`ran: 1 BLOCKING, 0 SHOULD-FIX, 2 NOTE` (an unknown severity is counted as
+`other`, never echoed). So a BLOCKING finding the verifier dismissed still
+shows in the report. This is shallower than an interactive verifier, whose
 `ce-code-review` runs its full reviewer roster. That gap is an accepted limit
 (this plugin's ADR 0002). Read `coverage` and `adversarial_review` before
 trusting a VERIFIED from this workflow.
@@ -239,7 +250,9 @@ trusting a VERIFIED from this workflow.
   through.) A previous SHA
   enters a rework prompt only if it is a full hex id. The workflow's own
   missing-field check is labelled as such in the rework prompt, never as the
-  verifier's verdict.
+  verifier's verdict. The one piece of the adversarial pass that reaches the
+  verifier outside a fence, its not-run reason, is fixed text plus full hex
+  SHAs only (see "How deep the verifier's review is inside fix-queue").
 - **Shell arguments are validated and quoted.** The repo slug and every path
   are validated as above and single-quoted in every command a prompt gives.
   Issue numbers are integers.
@@ -357,11 +370,14 @@ Its scenarios:
 44. the adversarial pass running after the field check and before the
     verifier, as a plain agent, on exactly `git diff <base> <sha>` in the
     issue's worktree, read-only; its output fenced in the verifier's
-    dispatch; the review-depth paragraph present; `adversarial_review: ran`
+    dispatch; the review-depth paragraph present, with the instruction to
+    grade each finding outside the fences; `adversarial_review` counting
+    `1 BLOCKING, 0 SHOULD-FIX, 0 NOTE`
 45. a pass that returns nothing, throws, reviews another SHA or returns no
     findings list: the verifier still runs, is told the lens is missing and
     that `coverage` must say the review was degraded, sees no pass output,
-    and the report says `not run: <reason>`
+    the not-run sentence carries each case's fixed reason, and the report
+    says `not run: <reason>`
 46. the pass running once per submission that reaches the verifier, on the
     new SHA in a rework round, never on one the field check stopped;
     `adversarial_review` in `needsReverify`
@@ -369,6 +385,13 @@ Its scenarios:
     staying inside its fence as printable ASCII
 48. the budget checked before a field-only retry: a stop there is
     escalated with the reason, never deferred
+49. a forged `coverage` claim and a fence opener sent as the reviewer's
+    `sha`, and as a thrown error's message: none of it appears outside a
+    fence in the verifier's prompt, in `adversarial_review`, or as raw
+    `<<<` in the log (rework round 1 on a4995c8)
+50. `adversarial_review` counting findings by severity
+    (`ran: 1 BLOCKING, 0 SHOULD-FIX, 2 NOTE`), and an unknown severity or a
+    null finding counted as `other`, never echoed
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -435,6 +458,10 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   "coverage must say degraded" instruction dropped; the review-depth
   paragraph dropped; `adversarial_review` dropped from `needsReverify`;
   the pass diff not taken from the base; a budget stop before the
-  field-only retry reported as deferred
+  field-only retry reported as deferred; for rework round 1: the
+  instruction to grade the findings dropped; the reason dropped from the
+  not-run sentence; the reviewer's raw `sha` in the reason; the error
+  message in the reason; the counts reduced to `ran`; the `other` count
+  dropped; the log escape dropped
 
 The first real run is the lead's one-issue acceptance run.
