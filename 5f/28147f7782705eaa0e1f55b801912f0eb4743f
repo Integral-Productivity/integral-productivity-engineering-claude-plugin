@@ -1,0 +1,24 @@
+skills/writing-dispatch-prompts/reference/fix-queue-workflow.md
+  s_5343ec90be42c6::t_4a93ec1fd86d12 119-130
+  s_5343ec90be42c6::t_8394e0257825d5 150-153
+  s_5343ec90be42c6::t_84e6d89a21effa 159-193
+  s_5343ec90be42c6::t_8f9bdd07783e34 203,208,228,273-274,293-294,299,302,347-369,427-435
+docs/adr/0002-per-fix-ce-toolchain-and-the-lead-fixer-verifier-agent-team-pattern.md
+  s_5343ec90be42c6::t_681796f5fcf44b 147-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5f28147f7782705eaa0e1f55b801912f0eb4743f",
+  "prompts": {},
+  "sessions": {
+    "s_5343ec90be42c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21b6a401-ac02-4371-a127-e6ee2049193a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
