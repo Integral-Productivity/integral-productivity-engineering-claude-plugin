@@ -65,7 +65,7 @@ Run all of them; report any that cannot run as not run, with the reason.
 
 ## Verdict
 
-Send the verdict with SendMessage to the fixer and the lead, in the format in `reference/verifier-verdict.md`: `VERIFIED`, `REWORK (round n of 2)`, `LEAD DECISION`, or `ESCALATE`.
+Send the verdict with SendMessage to the fixer and the lead, in the format in `reference/verifier-verdict.md`: `VERIFIED`, `REWORK (round n of 2)`, `LEAD DECISION`, or `ESCALATE`. No other word is a verdict; never write "CLEARED" (the adversary's word). The first line also states ce-code-review's `depth`, or `not run: <reason>`; a `not run` verdict is never VERIFIED. An exemption in a brief covers only the check it names: "the mutation check does not apply" never exempts ce-code-review.
 
 VERIFIED means no BLOCKING findings, no guard inputs awaiting a decision, and every acceptance criterion met or explicitly marked not verifiable here, with that limitation named. LEAD DECISION means the only open items are guard inputs from check 6 that the lead must rule on. Never claim a check you did not run.
 
