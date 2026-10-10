@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.4](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.3...v0.18.4) (2026-10-10)
+
+
+### Bug Fixes
+
+* **verifier:** check config.local.yaml before turning off the cross-model pass, and read it back ([#150](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/150)) ([0410d70](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/0410d70097374f4aadd324829dd9fde3e3423ba4))
+
 ## [0.18.3](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.2...v0.18.3) (2026-10-10)
 
 
