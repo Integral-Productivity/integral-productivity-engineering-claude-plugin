@@ -548,3 +548,11 @@ test('47. the reviewer pass output is untrusted: a forged closer in it stays ins
   const vp = prompts.find((p) => p.label === 'verifier #98 r0').prompt;
   assert.equal((vp.match(/<<<END DATA adversarial review>>>/g) || []).length, 1, 'only the real closer');
 });
+test('48. the budget is checked before a field-only retry; a stop there is escalated, not deferred', async () => {
+  let calls = 0;
+  const b = { total: 1000000, spent: () => 0, remaining: () => (calls >= 1 ? 1000 : 1000000) };
+  const { report, prompts } = await scenario('retrybudget', { admitted: [item(99, ['a'])], budgetObj: b, fixer: (n) => { calls++; return SUB(n, 's0', { tests: '' }); }, verifier: () => assert.fail('must not run') });
+  assert.deepEqual(labelsOf(prompts, 'fixer'), ['fixer #99 r0'], 'no retry runs below the budget');
+  assert.equal(report.deferred.length, 0, 'a fix that already started is not deferred');
+  assert.match(report.escalated[0].reason, /token budget ran low before the field-only retry in round 0; last verdict: REWORK/);
+});

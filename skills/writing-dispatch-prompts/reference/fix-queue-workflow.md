@@ -367,6 +367,8 @@ Its scenarios:
     `adversarial_review` in `needsReverify`
 47. a forged closer, line separator and tag character in the pass output
     staying inside its fence as printable ASCII
+48. the budget checked before a field-only retry: a stop there is
+    escalated with the reason, never deferred
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -432,6 +434,7 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   the pass not caught; the pass output relayed outside a fence; the
   "coverage must say degraded" instruction dropped; the review-depth
   paragraph dropped; `adversarial_review` dropped from `needsReverify`;
-  the pass diff not taken from the base
+  the pass diff not taken from the base; a budget stop before the
+  field-only retry reported as deferred
 
 The first real run is the lead's one-issue acceptance run.
