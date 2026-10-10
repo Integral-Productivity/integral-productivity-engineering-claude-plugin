@@ -1,0 +1,24 @@
+tools/fix-queue.test.mjs
+  s_5343ec90be42c6::t_141427bba0915b 389-407
+  s_5343ec90be42c6::t_4b48c07ea2040e 359,362
+skills/writing-dispatch-prompts/reference/fix-queue-workflow.md
+  s_5343ec90be42c6::t_7bf9770b4c504e 81-85,289-290,295-297,352-354
+workflows/fix-queue.js
+  s_5343ec90be42c6::t_157ec8b1565b83 223,280-282,284
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c274ffd92e837fae64831d5700077ce2626e2d7",
+  "prompts": {},
+  "sessions": {
+    "s_5343ec90be42c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21b6a401-ac02-4371-a127-e6ee2049193a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
