@@ -146,7 +146,9 @@ that matches no admitted issue is logged as unused.
 4. **Report.** The workflow returns `readyToOpen` (issue, branch, SHA, base,
    verified tree, worktree, and `mergeOrder` for the first item of a
    same-file lane) plus `needsReverify` (with the SHA, base and verified
-   tree a re-verify run takes as its previous ones), `blocked`, `escalated`,
+   tree a re-verify run takes as its previous ones, the fixer's
+   `submission_text` and the `scope_fence` with its `scope_fence_source`,
+   which it takes as `submission` and `scopeFence`), `blocked`, `escalated`,
    `deferred` and `skipped`, each with its reason and
    SHA where there is one. An error on one item, such as an agent failure or
    an exhausted budget, is recorded as blocked for that item; items that
@@ -185,7 +187,8 @@ Workflow({
       verified_tree: "<git rev-parse '<rebased SHA>^{tree}'>",
       previousSha: "<needsReverify sha>",
       previousBase: "<needsReverify base>",
-      submission: "<the fixer's original submission, when the lead has it>"
+      submission: "<the needsReverify entry's submission_text>",
+      scopeFence: "<the needsReverify entry's scope_fence>"
     }
   }
 })
@@ -195,24 +198,41 @@ It runs two agents and nothing else: the workflow's adversarial pass on
 `git diff <base> <sha>`, then the verifier. It does not admit, claim, label,
 create a worktree or branch, or dispatch a fixer, and it has no rework
 round. The worktree is `<worktreeRoot>/fix-<issue>`, the one the original
-run created.
+run created. Pass the same `worktreeRoot` as the original run: a different
+one names a worktree that does not hold the branch, so the branch binding
+fails and the item is escalated, never verified.
 
 The verifier's dispatch binds the branch tip to `sha`, checks that
 `merge-base <sha> origin/main` is `base` and that the tree is
-`verified_tree`, and runs `git range-diff <previousBase>..<previousSha>
-<base>..<sha>`, so it can grade every difference between the change verified
-before and the rebased one. Then it reviews and verifies the rebased SHA in
-full. The original submission, when given, reaches it inside a data fence;
-its ce-work evidence covers `previousSha`, and the rebased SHA's lack of a
-ce-work block of its own is not a finding.
+`verified_tree`, and returns REWORK if either differs. It says the
+verifier profile's tree comparison (check 2) uses this `verified_tree` in
+place of the submission's, which belongs to `previousSha`. It runs `git
+range-diff <previousBase>..<previousSha> <base>..<sha>`, so it can grade
+every difference between the change verified before and the rebased one.
+Then it reviews and verifies the rebased SHA in full. The original
+submission, when given, reaches it inside a data fence; its ce-work
+evidence covers `previousSha`, and the rebased SHA's lack of a ce-work
+block of its own is not a finding. `submission_text` in `needsReverify` is
+cleaned like other agent text (printable ASCII, `\u` escapes) with a
+20,000-character cap.
+
+The scope fence, when given as `scopeFence`, reaches the verifier and the
+pass inside a data fence, so the verifier's out-of-fence check has
+something to check against. `scope_fence_source` says whether it was the
+lead's `scopeFence` or the admission agent's advisory suggestion. Without
+one, the dispatch says the fence is the files changed in
+`<previousBase>..<previousSha>`, and that a file new to the rebased change
+in the range-diff is out of fence.
 
 Every `reverify` field is checked before any agent runs, and a bad one
 stops the workflow: `issue` a positive integer; `branch` matching
 `claude/fix-<issue>-<slug>` (lowercase letters, digits and `-`), the shape
 admission gives that issue; `sha`, `base`, `verified_tree`, `previousSha`
 and `previousBase` full 40-character lowercase hex, with no surrounding
-space; `sha` different from `previousSha`; `submission`, when present,
-text. Any other key is an error, as are `issues`, `scopeFence` and
+space; `sha` different from `previousSha`; `base` different from
+`previousBase` (the same base means it was never rebased onto the earlier
+fix); `submission`, when present, text; `scopeFence`, when present,
+non-empty text. Any other key is an error, as are `issues`, `scopeFence` and
 `maxFixes`, which only mean something to admission, a `reverify` object
 without `mode: "reverify"`, and any `mode` other than `fix` or `reverify`.
 
@@ -465,13 +485,18 @@ Its scenarios:
     rebased SHA runs only the pass and the verifier, with the branch
     binding, identity checks, range-diff against the previous SHA and base,
     the claim left alone and the original submission fenced, and reports it
-    under `readyToOpen` with the new SHA, base and tree and `reverifiedFrom`
+    under `readyToOpen` with the new SHA, base and tree and `reverifiedFrom`.
+    It also pins the re-verify claim and worktree lines, the REWORK-on-identity
+    and tree-comparison sentences, the "`sha` is <rebased>" instruction, and
+    `readyToOpen.sha` as exactly the rebased SHA
 52. malformed reverify args throwing before any agent runs: an unknown
     mode, `reverify` without the mode or the mode without it, a non-object,
-    `issues`, `scopeFence` or `maxFixes` alongside, a bad issue, a branch for
-    another issue or with shell text or capitals, an unknown key, `sha`
-    equal to `previousSha`, a non-text submission, and every SHA field
-    missing, short, uppercase, padded or not hex
+    `issues`, `scopeFence` or `maxFixes` alongside, a bad issue (including 0
+    and -1 with a branch that matches them), a branch for another issue or
+    with shell text or capitals, an unknown key, `sha` equal to
+    `previousSha`, `base` equal to `previousBase`, a non-text submission, a
+    blank or non-text `scopeFence`, and every SHA field missing, short,
+    uppercase, padded or not hex
 53. REWORK, LEAD DECISION, ESCALATE, VERIFIED for another SHA, VERIFIED
     with a BLOCKING finding and VERIFIED without a findings list escalated
     after one verifier run and no fixer; no verdict blocked
@@ -480,6 +505,11 @@ Its scenarios:
     no submission said plainly
 55. below the budget, nothing runs and the item is deferred
 56. `needsReverify` carrying the trimmed base and verified tree
+57. `needsReverify` carrying the cleaned `submission_text` (over 500
+    characters kept) and the scope fence with its source, lead or admission;
+    a supplied `scopeFence` with a forged closer staying fenced and printable
+    in the pass and verifier prompts; without one, the previous diff named
+    as the fence
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -551,6 +581,17 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   not-run sentence; the reviewer's raw `sha` in the reason; the error
   message in the reason; the counts reduced to `ran`; the `other` count
   dropped; the log escape dropped
+- for issue #113 rework round 1: the issue `<= 0` guard dropped; the
+  `base === previousBase` check dropped; the scope-fence type check
+  dropped; the "If either differs, return REWORK" sentence and the
+  tree-comparison sentence dropped; the re-verify claim and worktree lines
+  changed; the "`sha` is" instruction dropped; `readyToOpen.sha` taken from
+  `previousSha`; `submission_text` dropped from `needsReverify`, left
+  uncleaned, or capped at 500; the scope fence or its source dropped, a
+  supplied fence unfenced, and the no-fence sentence dropped. Taking
+  `readyToOpen.sha` from the shared result's `shaText(sha)` instead of the
+  argument is an equivalent mutant: the argument is already a validated,
+  untrimmed full hex id, so `shaText` returns it unchanged
 - for issue #113: the mode check, the reverify-without-mode check, the
   admission-args check, the unknown-key check, the issue check, the
   sha-equals-previousSha check and the submission type check each removed;
