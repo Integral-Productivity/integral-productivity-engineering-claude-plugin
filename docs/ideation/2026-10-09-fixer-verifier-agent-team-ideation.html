@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: Fixer/Verifier Agent Team</title>
+<style>
+:root{
+  --bg:#fbfaf7; --fg:#1d1d1b; --muted:#5c5a55; --rule:#e3e0d8; --card:#ffffff;
+  --accent:#2f5d8a; --accent-soft:#e6eef6; --accent-text:#1f4466;
+  --warn-soft:#fbefe1; --warn-text:#7a4310; --ok-soft:#e5f2e8; --ok-text:#1f5a31;
+  --chip:#f0eee8; --code:#f3f1ec;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#161616; --fg:#e8e6e1; --muted:#a8a59e; --rule:#2e2d2a; --card:#1e1e1d;
+    --accent:#7fb0de; --accent-soft:#1f2c3a; --accent-text:#b7d4ee;
+    --warn-soft:#3a2a18; --warn-text:#f0c48f; --ok-soft:#1c3123; --ok-text:#a8dcb5;
+    --chip:#2a2927; --code:#262523;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin-inline:auto;padding:2.5rem 1.25rem 4rem}
+p,li,dd{max-width:72ch}
+h1{font-size:1.75rem;line-height:1.25;margin:.2rem 0 .6rem}
+h2{font-size:1.3rem;margin:2.6rem 0 .8rem;padding-bottom:.35rem;border-bottom:1px solid var(--rule)}
+h3{font-size:1.1rem;margin:0 0 .5rem}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;color:var(--muted);font-size:.88rem;margin:.4rem 0 1rem}
+.meta b{color:var(--fg);font-weight:600}
+code{font:0.86em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);padding:.08em .32em;border-radius:4px}
+strong{color:inherit}
+a{color:var(--accent)}
+.stats{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.2rem 0}
+.stat{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:.55rem .9rem;min-width:7.5rem}
+.stat .n{font-size:1.35rem;font-weight:650}
+.stat .l{font-size:.78rem;color:var(--muted)}
+ul.jump{columns:2;column-gap:2rem;padding-left:1.1rem;font-size:.93rem}
+@media (max-width:640px){ul.jump{columns:1}}
+article.idea{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:1.2rem 1.3rem;margin:1.1rem 0}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.1rem 0 .8rem}
+.chip{display:inline-block;font-size:.76rem;font-weight:600;padding:.16rem .55rem;border-radius:999px;background:var(--chip);color:var(--fg);border:1px solid var(--rule)}
+.chip.id{background:var(--accent-soft);color:var(--accent-text);border-color:transparent}
+.chip.axis{background:var(--ok-soft);color:var(--ok-text);border-color:transparent}
+dl.fields{margin:0}
+dl.fields dt{font-weight:650;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.85rem}
+dl.fields dd{margin:.2rem 0 0}
+dl.fields dd ul{margin:.2rem 0;padding-left:1.15rem}
+.callout{background:var(--accent-soft);color:var(--accent-text);border-radius:8px;padding:.8rem 1rem;margin:1rem 0}
+.callout.warn{background:var(--warn-soft);color:var(--warn-text)}
+.callout p{max-width:none;margin:.2rem 0}
+figure{margin:1rem 0 .4rem}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:.82rem;color:var(--muted);margin-top:.35rem}
+svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--fg)}
+svg .box{fill:var(--card);stroke:var(--muted);stroke-width:1.2}
+svg .hl{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+svg .wr{fill:var(--warn-soft);stroke:var(--warn-text);stroke-width:1.2}
+svg .line{stroke:var(--muted);stroke-width:1.4;fill:none}
+svg .small{font-size:11px;fill:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;vertical-align:top;padding:.5rem .55rem;border-bottom:1px solid var(--rule)}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td:first-child{white-space:nowrap;font-weight:600}
+footer.composition-signal{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--rule);font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="eyebrow">Ideation</div>
+  <h1>Ideation: Fixer/Verifier Agent Team</h1>
+  <div class="meta">
+    <span><b>Date:</b> <time datetime="2026-10-09">2026-10-09</time></span>
+    <span><b>Topic:</b> fixer-verifier-agent-team</span>
+    <span><b>Mode:</b> repo-grounded</span>
+  </div>
+  <p><b>Focus:</b> making performance and quality improvements to the fixer/verifier agent team set up, including optimizing token usage and model choice, and additional roles like integrator and product manager (or something like that), to ensure bugs are closed appropriately.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">49</div><div class="l">raw ideas, 5 frames</div></div>
+    <div class="stat"><div class="n">22</div><div class="l">after merge (19 + 3 combinations)</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">survivors</div></div>
+    <div class="stat"><div class="n">5 / 5</div><div class="l">axes covered</div></div>
+  </div>
+</header>
+
+<section id="grounding-context">
+  <h2>Codebase Context</h2>
+  <p>Grounded against <code>origin/main</code> (release 0.18.0). The team lives in <code>agents/fixer.md</code>, <code>agents/verifier.md</code>, <code>workflows/fix-queue.js</code>, the <code>writing-dispatch-prompts</code> skill and its references, and ADR 0002.</p>
+  <ul>
+    <li><strong>Roles today.</strong> The lead holds the claim (<code>status:in-progress</code>), orchestrates, runs the adversary review, pushes and opens the PR. The fixer implements through <code>ce-work</code> and commits locally. The verifier runs <code>ce-code-review</code> plus a nine-point checklist (identity, toolchain evidence, fail-before/pass-after, mutation, guard code, acceptance criteria, scope fence, repo verification) and returns VERIFIED / REWORK / ESCALATE.</li>
+    <li><strong>Model and cost.</strong> Both profiles declare <code>model: inherit</code>, so neither role is tuned. <code>fix-queue.js</code> enforces one flat <code>minBudgetPerFix</code> of 150k tokens per round. An issue can cost up to three fixer and verifier runs: the first pass plus two rework rounds. Chips launch with an empty MCP roster (measured 172 → 0 servers).</li>
+    <li><strong>Known failures.</strong> In #96, verifiers returned CLEARED without running <code>ce-code-review</code>. Under #116, workflow agents have no Agent tool, so every workflow review runs degraded, and a malformed field burns a rework round. #113: <code>needsReverify</code> dead-ends. #114 and #115: claims land before filters, and a crash leaves orphaned claims. #112: unpredicted same-file collisions. #109: the verified-tree recipe swallows failures. #127: enforce the verdict's first line.</li>
+    <li><strong>After CLEARED.</strong> <code>fix-queue</code> stops at VERIFIED and returns a "next: adversary review, then push and open the PR" note. Auto-merge runs on green CI, and GitHub closes the issue on the <code>Closes</code> keyword (about 41 seconds after merge for #90). Nothing explicit releases <code>status:in-progress</code>, and no step checks the behavior once the fix is on <code>main</code>.</li>
+    <li><strong>External signal</strong> (moderate; search snippets). An agent declaring done too early is a named failure pattern. LLM judges prefer output from their own model family. Graders have measurable false-positive and false-negative rates, about 31% of SWE-bench "passes" rest on weak tests, and Aider separates the planning model from the editing model. Merge queues (Zuul, GitHub) re-test the combined state. No published evidence says which model tier suits which role in a fixer/verifier team.</li>
+    <li><strong>Strategy boundary.</strong> <code>docs/strategy/compounding-automation.md</code> prefers extending existing homes over adding plugins.</li>
+  </ul>
+</section>
+
+<section id="topic-axes">
+  <h2>Topic Axes</h2>
+  <ol>
+    <li>Model and token economics per role</li>
+    <li>Verification integrity</li>
+    <li>Intake and admission</li>
+    <li>Shipping and closure (after CLEARED: PR, CI, merge, issue closure, acceptance)</li>
+    <li>Rework and recovery loop</li>
+  </ol>
+</section>
+
+<section id="ranked-ideas">
+  <h2>Ranked Ideas</h2>
+  <ul class="jump">
+    <li><a href="#i1">1. Mechanical gate: code checks, the model judges</a></li>
+    <li><a href="#i2">2. A closer role that owns everything after CLEARED</a></li>
+    <li><a href="#i3">3. Host the review in the workflow; DEGRADED is not VERIFIED</a></li>
+    <li><a href="#i4">4. Acceptance owner at intake: the executable brief</a></li>
+    <li><a href="#i5">5. Measure, then tier: a fix ledger and per-role model args</a></li>
+    <li><a href="#i6">6. Delta re-verification by patch identity</a></li>
+    <li><a href="#i7">7. Claims as leases; admission as a pure read</a></li>
+  </ul>
+
+  <div class="callout">
+    <p><strong>How 2, 4 and 1 fit together.</strong> The acceptance check the PM-style owner writes at intake (4) is the same artifact the mechanical gate runs as fail-before/pass-after (1). The closer replays it where the merged state differs from the verified one (2). One executable definition of done runs from triage to closure, so "closed" means the behavior is fixed, not only that a PR merged.</p>
+  </div>
+
+  <article class="idea" id="i1">
+    <div class="chips"><span class="chip id">1</span><span class="chip axis">Verification integrity</span><span class="chip">Confidence 85%</span><span class="chip">Complexity Medium</span></div>
+    <h3>1. Mechanical gate: code checks, the model judges</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Move every deterministic verifier check into a tested script step in <code>fix-queue.js</code> that runs before any verifier agent is spawned. That covers identity, tree binding, 40-hex and field validation, <code>--no-renames</code> scope-fence containment, the fail-before/pass-after test run, and the repo verification command. Have the workflow compute the facts it can read from git (SHA, base, tree, changed files) instead of trusting the fixer's copy, so the fixer writes only what a machine cannot know. A mechanical failure goes back to the fixer as an exact error and does not consume a rework round. The verifier agent then receives the gate's results and spends its tokens on judgment only: correctness review, mutation design, guard-code bypass hunting, and acceptance-criteria fit. This also enforces #127's rule in code: a VERIFIED without a review artifact is rejected.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> <code>agents/verifier.md:48</code>, "<strong>Identity.</strong> <code>HEAD</code> equals the submitted SHA. <code>git merge-base &lt;sha&gt; origin/main</code> equals the submitted base." Also <code>:52</code>, which says to run the changed tests in a detached worktree at base. These are shell recipes an LLM re-executes, and in #96 it skipped them.</li>
+        <li><code>direct:</code> #116, where the fixer's <code>verified_tree</code> was not 40 hex characters, so the field check returned REWORK (round 1 of 2). The workflow already owns <code>missingFields()</code> (<code>fix-queue.js:381-390</code>).</li>
+        <li><code>direct:</code> #109, "Recipe swallows failures (no <code>cd</code>, missing exit guard, no prefix)".</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>About half of the nine checks are mechanical. In code they run exactly the same way every time, cost close to zero tokens, and cannot be skipped. That is the structural fix for #96, and it ends rework rounds spent on typos. It also makes model tiering for the verifier (idea 5) a question you can measure, because what remains is pure judgment.</dd>
+      <dt>Downsides</dt>
+      <dd>The fail-before/pass-after and mutation runs are heavier than a lint, and the gate must handle many repos' test commands. Capturing the tree when <code>ce-work</code> returns still needs a fixer-side trigger. Moving trust from prose to code means this script needs its own test scenarios, building on the existing 35. The cheaper-verifier claim is a hypothesis: the remaining judgment is the hardest part, so measure it before relying on it.</dd>
+    </dl>
+    <figure>
+      <svg viewBox="0 0 760 170" role="img" aria-label="Before: one LLM verifier does mechanical and judgment checks. After: a code gate runs mechanical checks first, the LLM verifier only judges.">
+        <text x="10" y="20" class="small">Today</text>
+        <rect class="box" x="10" y="30" width="110" height="44" rx="6"/><text x="65" y="57" text-anchor="middle" font-size="13">Fixer</text>
+        <line class="line" x1="120" y1="52" x2="200" y2="52"/><polygon points="200,47 210,52 200,57" fill="var(--muted)"/>
+        <rect class="wr" x="210" y="30" width="330" height="44" rx="6"/><text x="375" y="50" text-anchor="middle" font-size="13">LLM verifier: 9 checks</text><text x="375" y="66" text-anchor="middle" class="small">mechanical + judgment, can skip (#96)</text>
+        <text x="10" y="105" class="small">Proposed</text>
+        <rect class="box" x="10" y="115" width="110" height="44" rx="6"/><text x="65" y="142" text-anchor="middle" font-size="13">Fixer</text>
+        <line class="line" x1="120" y1="137" x2="200" y2="137"/><polygon points="200,132 210,137 200,142" fill="var(--muted)"/>
+        <rect class="hl" x="210" y="115" width="230" height="44" rx="6"/><text x="325" y="135" text-anchor="middle" font-size="13">Code gate in fix-queue.js</text><text x="325" y="151" text-anchor="middle" class="small">identity, tree, fence, fail/pass, fields</text>
+        <line class="line" x1="440" y1="137" x2="520" y2="137"/><polygon points="520,132 530,137 520,142" fill="var(--muted)"/>
+        <rect class="box" x="530" y="115" width="220" height="44" rx="6"/><text x="640" y="135" text-anchor="middle" font-size="13">LLM verifier: judgment</text><text x="640" y="151" text-anchor="middle" class="small">review, mutants, guards, criteria</text>
+      </svg>
+      <figcaption>Illustrative: the gate changes what the verifier agent is paid to do.</figcaption>
+    </figure>
+  </article>
+
+  <article class="idea" id="i2">
+    <div class="chips"><span class="chip id">2</span><span class="chip axis">Shipping and closure</span><span class="chip">Confidence 80%</span><span class="chip">Complexity Medium</span></div>
+    <h3>2. A closer role that owns everything after CLEARED</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Add an integrator/closer as a new profile in <code>agents/</code> or a follow-on workflow step, not a new plugin. It takes <code>readyToOpen</code> in merge order after the adversary has CLEARED, pushes, opens the PR with the closing keyword from the template, and watches CI. When the first item in a lane lands, it rebases the next one and hands it to delta re-verification (idea 6). After each merge it keeps a per-issue list of closure conditions: PR merged, issue state read back as <code>CLOSED/COMPLETED</code>, <code>status:in-progress</code> removed, and a closure comment linking the PR and the verdict. In two cases where the merged state can differ from what was verified, it also re-runs the acceptance check on <code>main</code> before signing off: a lane item that was rebased after verification, and an acceptance criterion that CI does not run. If the check fails, it reopens the issue with the failing output and moves it back to <code>ready-for-agent</code>.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> <code>fix-queue.js:503</code>, <code>next: 'adversary review, then push and open the PR with Closes #' + r.number</code>. The workflow returns a report, and every step after it is the lead's manual work.</li>
+        <li><code>direct:</code> ADR 0002 and the shipping dossier. Claim release is "the closing PR, or the lead", and no explicit call that drops the label was found.</li>
+        <li><code>direct:</code> #90 closed 41 seconds after the merge, and nothing in the workflow or CI did a manual close step. Closure follows the keyword, not the behavior.</li>
+        <li><code>external:</code> Zuul and GitHub merge queue test the combined state before landing. Paperclip's liveness model treats a merged PR as only one kind of done.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>This is the integrator the request names, given a concrete contract. Making a bug count as closed is the one step with no owner today. Turning closure into a list of conditions with evidence attached replaces "closed because a keyword matched" with "closed because each condition was checked". The closer's reopen rate becomes the best long-run signal for tuning the fixer and verifier (idea 5).</dd>
+      <dt>Downsides</dt>
+      <dd>It adds a role that needs push rights, which is outward-facing and changes ADR 0002's rule that the lead owns PRs, so it warrants an ADR. Replaying on <code>main</code> adds little when the fix's test already runs in CI on the merge commit. Limit the replay to rebased items and criteria CI doesn't cover, or it becomes ceremony. It also runs into how the lead reasons about sibling sessions under the multi-session coordination protocol.</dd>
+    </dl>
+  </article>
+
+  <article class="idea" id="i3">
+    <div class="chips"><span class="chip id">3</span><span class="chip axis">Verification integrity</span><span class="chip">Confidence 75%</span><span class="chip">Complexity Medium</span></div>
+    <h3>3. Host the review in the workflow; DEGRADED is not VERIFIED</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Workflow agents have no Agent tool, so <code>ce-code-review</code> inside the verifier can never dispatch its reviewers. Move the review up a level: the workflow runs the reviewer personas as parallel <code>agent()</code> steps, each of which can get its own tier, and writes a review file (depth, findings, degraded flag) that the verifier reads and cannot fabricate. Alongside it, make a degraded review a separate outcome. Each kind of change gets a short list of which degradations it can tolerate, with a compensating step. For example, guard code is never cleared on a degraded review, and docs may be, with the lead reading the diff. A VERIFIED that the list doesn't allow becomes <code>DEGRADED</code> and never enters <code>readyToOpen</code>.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> #116, "Agents dispatched by <code>agent()</code> in workflow have no Agent tool → <code>ce-code-review</code> cannot dispatch reviewer subagents … every VERIFIED rests on shallower review than interactive verifier gets". The issue lists workflow-run reviewer passes as option 1.</li>
+        <li><code>direct:</code> the <code>fix-queue.js</code> report note, "Check coverage for a degraded review before trusting a VERIFIED". The rule is advisory text, and <code>coverage</code> is a free-text field (<code>fix-queue.js:198</code>).</li>
+        <li><code>external:</code> the FAA Minimum Equipment List: an aircraft can fly with an item inoperative only where the list names the item and a procedure, and otherwise it is grounded.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>The workflow is the main path, so today the degraded review is the normal case, not the exception. Deciding once, per kind of change, which degradations are acceptable replaces a judgment that whoever reads the report currently makes case by case. It also gives reviewer tiering somewhere to live.</dd>
+      <dt>Downsides</dt>
+      <dd>It overlaps #116 and #127. The new part is choosing the structural option and adding the DEGRADED outcome, so fold it into those issues rather than opening a parallel track. Running reviewers as workflow steps moves the cost from inside one agent into the workflow budget. It probably raises the cost of each verification while fixing quality, which is exactly why idea 5's measurement matters.</dd>
+    </dl>
+  </article>
+
+  <article class="idea" id="i4">
+    <div class="chips"><span class="chip id">4</span><span class="chip axis">Intake and admission</span><span class="chip">Confidence 65%</span><span class="chip">Complexity Medium–High</span></div>
+    <h3>4. Acceptance owner at intake: the executable brief</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>This is the product-manager-like role, placed where it has the most effect: before any fixer starts. When <code>issue-triage</code> moves an issue to <code>ready-for-agent</code>, an acceptance owner adds structured fields to the AGENT-BRIEF. They are: acceptance criteria written as commands or test names with expected results (ideally a failing test that fails on <code>main</code> for the stated reason), predicted files, scope fence, and lane hints. Admission validates and uses these fields instead of re-deriving <code>files</code>, <code>scope_fence</code> and <code>ground_truth</code> from the issue text on every run. The fixer's job becomes "make this pass without editing it". The gate (idea 1) and the closer (idea 2) check against the same artifact. For prose-only fixes (much of this repo is skill text), the brief carries a written check list as an explicit fallback.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> <code>skills/issue-triage/reference/AGENT-BRIEF.md:1-3</code>, "the authoritative specification that an AFK agent will work from … the agent brief is the contract". Today it is prose with no executable part.</li>
+        <li><code>direct:</code> <code>fix-queue.js</code> ADMIT_SCHEMA, "<code>ground_truth</code>: what you verified beyond the issue body, dated". Admission re-checks every issue in prose on every run.</li>
+        <li><code>external:</code> SWE-bench+: about 31% of "passing" patches pass because of weak tests. When the solver writes the test that proves its own fix, it is both setting the bar and clearing it.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>It separates "what done means" from "who does the work", which is what a PM or acceptance owner is for. Triage already runs once per issue, so the contract is written once instead of re-derived by five later steps. This hand-off sets the quality ceiling for everything after it.</dd>
+      <dt>Downsides</dt>
+      <dd>The verifier's caveat is real: many issues in this plugin are documentation or skill prose with no natural command to run, so the fallback will be used often and needs its own rules. Writing a failing test at triage costs tokens per issue, including issues that never get fixed. It reaches into <code>issue-triage</code>, a sibling skill, so the composability conventions in <code>CLAUDE.md</code> apply.</dd>
+    </dl>
+    <figure>
+      <svg viewBox="0 0 760 120" role="img" aria-label="One acceptance artifact flows from triage to admission, gate, verifier and closer.">
+        <rect class="hl" x="10" y="40" width="130" height="46" rx="6"/><text x="75" y="60" text-anchor="middle" font-size="13">Triage + owner</text><text x="75" y="76" text-anchor="middle" class="small">writes acceptance</text>
+        <rect class="box" x="165" y="40" width="120" height="46" rx="6"/><text x="225" y="68" text-anchor="middle" font-size="13">Admission</text>
+        <rect class="box" x="310" y="40" width="120" height="46" rx="6"/><text x="370" y="60" text-anchor="middle" font-size="13">Code gate</text><text x="370" y="76" text-anchor="middle" class="small">fail-before/pass-after</text>
+        <rect class="box" x="455" y="40" width="120" height="46" rx="6"/><text x="515" y="60" text-anchor="middle" font-size="13">Verifier</text><text x="515" y="76" text-anchor="middle" class="small">criteria fit</text>
+        <rect class="hl" x="600" y="40" width="150" height="46" rx="6"/><text x="675" y="60" text-anchor="middle" font-size="13">Closer</text><text x="675" y="76" text-anchor="middle" class="small">replay, then close</text>
+        <line class="line" x1="140" y1="63" x2="160" y2="63"/><line class="line" x1="285" y1="63" x2="305" y2="63"/><line class="line" x1="430" y1="63" x2="450" y2="63"/><line class="line" x1="575" y1="63" x2="595" y2="63"/>
+        <text x="380" y="22" text-anchor="middle" class="small">the same acceptance artifact at every step</text>
+      </svg>
+      <figcaption>Illustrative: the owner role at intake and the closer role at the end both work from one contract.</figcaption>
+    </figure>
+  </article>
+
+  <article class="idea" id="i5">
+    <div class="chips"><span class="chip id">5</span><span class="chip axis">Model and token economics per role</span><span class="chip">Confidence 65%</span><span class="chip">Complexity Medium</span></div>
+    <h3>5. Measure, then tier: a fix ledger and per-role model args</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Have <code>fix-queue</code> write one structured record per issue: claim time, predicted files, and for each round the tokens, model, review depth and verdict, then merge SHA and any later reopen. Replace <code>model: inherit</code> with workflow args (<code>fixerModel</code>, <code>verifierModel</code>, <code>admissionModel</code>, <code>reviewerModel</code>). Start with a hypothesis, not a policy: admission and field work on the cheapest tier, and the verifier on a different tier or family from the fixer, for independence. Let the ledger promote or demote a role's tier when its rework or reopen rate moves. A step-up ladder (a stronger fixer model on the last rework round before escalating to the lead) is one candidate the ledger can test. The ledger also doubles as a claim journal that a crashed run can recover from (see idea 7).</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> <code>agents/fixer.md:4</code> and <code>agents/verifier.md:4</code>, <code>model: inherit</code>. <code>fix-queue.js:22-23</code>, one <code>minBudgetPerFix</code> default of 150000 applied to every item and role.</li>
+        <li><code>external:</code> Aider's architect/editor split (a strong model plans, a cheap one edits, about 14x cheaper). Anthropic's research system uses a lead plus cheaper subagents. LLM judges prefer output from their own model family. Web research found no published evidence on which model tier fits which role, so this team has to measure its own.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>Every model-choice argument for this team is currently opinion. A ledger is cheap, because the workflow already tracks its <code>budget</code>, and it turns tiering into a fitness function. It also makes the verifier's independence real: today the model that wrote a fix reviews it.</dd>
+      <dt>Downsides</dt>
+      <dd>Not yet verified: whether workflow <code>agent()</code> calls accept a per-call model (current call sites pass only <code>agentType</code>, label, phase and schema). If they don't, tiering has to go through per-tier agent profiles. A ledger only becomes useful after several batches, so the first tiering choices are still guesses. A cheaper verifier may raise the rate of wrong CLEARED verdicts, so tier the verifier last.</dd>
+    </dl>
+  </article>
+
+  <article class="idea" id="i6">
+    <div class="chips"><span class="chip id">6</span><span class="chip axis">Rework and recovery loop</span><span class="chip">Confidence 70%</span><span class="chip">Complexity Small–Medium</span></div>
+    <h3>6. Delta re-verification by patch identity</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Add a <code>reverify</code> mode to <code>fix-queue</code> that takes a branch that is already claimed and verified and skips admission. After rebasing a later lane item onto the landed fix, compare <code>git patch-id</code> of the rebased commit with the verified one. If they are identical, the verdict carries forward: run only the mechanical gate (idea 1) on the new SHA and re-bind the tree. If they differ, send the verifier only the difference between the two diffs. The closer (idea 2) triggers this once each lane predecessor merges.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> #113, "Remedy fails: issue still carries <code>status:in-progress</code> (skipped on re-run); worktree/branch exist (fresh branch cut instead)". #113 also names "add <code>reverify</code> mode to fix-queue" as an option.</li>
+        <li><code>direct:</code> <code>fix-queue.js:99-105</code>, "Rebasing onto the earlier fix makes a new, unverified SHA, so it is reported under <code>needsReverify</code>".</li>
+        <li><code>external:</code> <code>git patch-id</code> is git's standard way to fingerprint a change independently of its base, and <code>git cherry</code> uses it.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>Lane serialization is the workflow's answer to same-file collisions, but every item after the first in a lane dead-ends, so its cost is a manual loop. Making re-verification nearly free lets the workflow serialize aggressively, and it is the smallest change on this list that removes a real dead end.</dd>
+      <dt>Downsides</dt>
+      <dd>It overlaps #113, so this is a design choice for that issue rather than a new track. A matching patch-id doesn't prove behavior is the same when the base's behavior changed underneath, which is why the gate re-runs the tests. It does not solve collisions on files nobody predicted (#112).</dd>
+    </dl>
+  </article>
+
+  <article class="idea" id="i7">
+    <div class="chips"><span class="chip id">7</span><span class="chip axis">Intake and admission</span><span class="chip">Confidence 65%</span><span class="chip">Complexity Small</span></div>
+    <h3>7. Claims as leases; admission as a pure read</h3>
+    <dl class="fields">
+      <dt>Description</dt>
+      <dd>Change the order of admission. The admission agent reads and checks candidates but writes nothing to GitHub. The workflow then applies <code>scopeFence</code>, <code>maxFixes</code> and duplicate filtering in code, and only the issues that survive get <code>status:in-progress</code>, plus a claim comment stamped with the run ID and time. A sweeper releases leases whose run ID has no live run, so a crashed run leaves no orphaned claims and other sessions can tell a live claim from a stale one.</dd>
+      <dt>Basis</dt>
+      <dd><ul>
+        <li><code>direct:</code> #114, "Admission agent never sees scopeFence keys, so it claims <code>status:in-progress</code> and creates worktrees for issues filtered out later. Wastes <code>maxFixes</code> slots and leaves orphaned claim labels."</li>
+        <li><code>direct:</code> #115 N5, "If admission agent throws … run dies with no report after claim labels already applied."</li>
+        <li><code>direct:</code> the admission prompt (<code>fix-queue.js:219</code>) runs <code>gh issue edit --add-label</code> from inside the LLM.</li>
+      </ul></dd>
+      <dt>Rationale</dt>
+      <dd>It fixes #114 and #115 N5 together by removing the cause rather than patching each. It also makes the multi-session claim protocol crash-safe, which matters more as more fixer batches run in parallel.</dd>
+      <dt>Downsides</dt>
+      <dd>It overlaps #114 and #115, and the new part is moving the claim into code. A lease sweeper needs a reliable signal that a run is still alive, which a label alone can't carry. That ties it to idea 5's ledger.</dd>
+    </dl>
+  </article>
+</section>
+
+<section id="rejection-summary">
+  <h2>Rejection Summary</h2>
+  <p>49 raw ideas merged into 19 candidates plus 3 combinations. Most of the reduction came from duplicates: four or more of the five frames independently proposed the mechanical gate, the closer, and delta re-verification. The rows below are the merged candidates that did not survive as standalone ideas.</p>
+  <table>
+    <thead><tr><th>#</th><th>Idea</th><th>Reason rejected</th></tr></thead>
+    <tbody>
+      <tr><td>M4</td><td>Verification depth and tier set by each kind of change's track record (ANSI Z1.4 switching rules; magistrate-style cheap first pass)</td><td>Needs track-record data that doesn't exist yet and is heavy for a 3-fix batch. Its sound part is now how idea 5 adjusts tiers.</td></tr>
+      <tr><td>M5</td><td>A rework-round ladder: try a stronger model before escalating to the lead</td><td>No evidence that rework failures are failures of model capability rather than process failures like #116. Kept inside idea 5 as one hypothesis the ledger can test.</td></tr>
+      <tr><td>M9</td><td>Verdict receipts: reject a VERIFIED that cannot prove the review ran</td><td>Nearly the same as open issue #127. The "artifacts code can check" extension is folded into ideas 1 and 3.</td></tr>
+      <tr><td>M10</td><td>Blind-first or pre-registered verification</td><td>#96 shows skipped checks, not anchoring, so evidence of this failure mode is thin. It adds a verifier pass, which works against the token goal.</td></tr>
+      <tr><td>M15</td><td>A general post-merge acceptance replay on <code>main</code></td><td>Weak in general: the fix's test already ships in the PR and runs in CI on the merge commit. Its valuable cases (rebased lane items, criteria CI doesn't run) are folded into idea 2.</td></tr>
+      <tr><td>M16</td><td>Failure flywheel: findings and surviving mutants become standing precedents</td><td>Part of its basis is contradicted: <code>verifier.md:54</code> already points at <code>guard-code-precedents.md</code> past rulings. The new extension is untested, and it overlaps compound-trigger work (#9, #10).</td></tr>
+      <tr><td>M17</td><td>Lane ownership: one fixer stacks commits, or a file token is required to edit</td><td>Sound, but narrower than ideas 6 and 2 combined, and already tracked as #112.</td></tr>
+      <tr><td>M18</td><td>Root-cause clustering at intake</td><td>Its basis treats #106 and #109 as one root cause, but they are different bugs. It belongs in <code>issue-triage</code>, not the fixer/verifier team.</td></tr>
+      <tr><td>M19</td><td>Parallel best-of-N attempts instead of serial rework</td><td>Works against the token-reduction goal: it doubles fixer spend and adds a judge run per attempt.</td></tr>
+      <tr><td>X1</td><td>One closure contract from intake to closure (combination)</td><td>Kept as the framing that links ideas 4, 1 and 2 (callout above) rather than as its own idea. It inherits the replay weakness noted for M15.</td></tr>
+      <tr><td>X2</td><td>"Code checks, model judges" makes a cheaper verifier safe (combination)</td><td>The gate half became idea 1. The claim that a cheaper verifier is safe is unsupported, because the remaining judgment is the hardest part. Test it through idea 5.</td></tr>
+      <tr><td>X3</td><td>Tiering driven by measurement (combination)</td><td>Depended on M4. Its sound part, ledger-driven tiering, is idea 5.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="references">
+  <h2>References</h2>
+  <ul>
+    <li><a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/agents/fixer.md">agents/fixer.md</a> · <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/agents/verifier.md">agents/verifier.md</a> · <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/workflows/fix-queue.js">workflows/fix-queue.js</a></li>
+    <li><a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/docs/adr/0002-per-fix-ce-toolchain-and-the-lead-fixer-verifier-agent-team-pattern.md">ADR 0002</a> · <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/skills/issue-triage/reference/AGENT-BRIEF.md">AGENT-BRIEF.md</a> · <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/blob/main/docs/strategy/compounding-automation.md">compounding-automation.md</a></li>
+    <li>Issues: <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/96">#96</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/109">#109</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/112">#112</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/113">#113</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/114">#114</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/115">#115</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/116">#116</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/127">#127</a>, <a href="https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/129">#129</a></li>
+    <li>External: <a href="https://aider.chat/2024/09/26/architect.html">Aider architect/editor</a> · <a href="https://zuul-ci.org/docs/zuul/9.4.0/gating.html">Zuul gating</a> · <a href="https://arxiv.org/html/2410.21819v1">LLM self-preference bias</a> · <a href="https://agentpatterns.ai/patterns/anti-patterns/premature-completion/">Premature completion</a></li>
+  </ul>
+</section>
+
+<footer class="composition-signal">Composed <time datetime="2026-10-10T00:55Z">2026-10-10T00:55Z</time> by ce-ideate from the user prompt above, grounded on <code>origin/main</code> at release 0.18.0. Bases were verified by the generating agents' reads and a separate fresh-context verifier (13 sound, 9 weak, 0 refuted of 22); two-idea agents and merged ideas got less verification per basis than single-frame ones.</footer>
+
+</main>
+</body>
+</html>
