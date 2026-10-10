@@ -1,0 +1,35 @@
+tools/fix-queue.test.mjs
+  s_5343ec90be42c6::t_d4cf7ce283fe3d 326-327,330,335-381,383-387
+  s_5343ec90be42c6::t_52cc3856104891 382
+  s_5343ec90be42c6::t_184f322a5d09dc 388
+workflows/fix-queue.js
+  s_5343ec90be42c6::t_c5bdfb1eb5bb1c 208-219,222-223
+  s_5343ec90be42c6::t_f0ef369df93378 28-29,244-247,276-282,460
+skills/writing-dispatch-prompts/reference/fix-queue-workflow.md
+  s_5343ec90be42c6::t_eea54bda920509 343-346
+  s_c5f1c0cd0a4cf3::t_a3aa0bd72ad0c8 76-83,268-270,281-291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "573bba1b53bc1335d57f07084bc17df582d52a36",
+  "prompts": {},
+  "sessions": {
+    "s_5343ec90be42c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21b6a401-ac02-4371-a127-e6ee2049193a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    },
+    "s_c5f1c0cd0a4cf3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaa745dc-1a1b-440c-b526-bbb00d9e8288",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
