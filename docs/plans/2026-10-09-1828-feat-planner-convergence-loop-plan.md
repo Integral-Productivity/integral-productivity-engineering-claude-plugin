@@ -29,7 +29,7 @@ Add a planner role to the fixer/verifier team. Before each fix-queue batch, and 
 
 fix-queue admits every open issue labelled `ready-for-agent`; by convention leads launch it on `bug` issues. Fixing work files every out-of-scope finding from review as a new issue, which the Loose Ends rule pre-approves, and triage typically labels those findings `bug` + `ready-for-agent`, so they flow straight back into the queue.
 
-In human-agent-collaboration-claude-plugin since 2026-09-09, 179 issues were filed and 103 remain open against 200+ merged PRs; about 39% of the new issues were spawned by fixing work. They cluster on one surface, the loose-ends artifact guard, whose in-house text matching over shell commands and markdown leaks at each new input shape. Recent fixes on it filed 2-4 follow-ups each (PRs #515, #510, #507). Of six recent spawned issues, five describe inputs a real session can produce (#514 is the theoretical one), so the follow-ups are not noise to filter out; they are evidence that patching this design does not converge. `skills/writing-dispatch-prompts/reference/guard-code-precedents.md` already records that blocklisting input shapes failed across four review rounds.
+In a sibling internal plugin since 2026-09-09, 179 issues were filed and 103 remain open against 200+ merged PRs; about 39% of the new issues were spawned by fixing work. They cluster on one surface, the loose-ends artifact guard, whose in-house text matching over shell commands and markdown leaks at each new input shape. Recent fixes on it filed 2-4 follow-ups each (PRs #515, #510, #507). Of six recent spawned issues, five describe inputs a real session can produce (#514 is the theoretical one), so the follow-ups are not noise to filter out; they are evidence that patching this design does not converge. `skills/writing-dispatch-prompts/reference/guard-code-precedents.md` already records that blocklisting input shapes failed across four review rounds.
 
 Nothing in the team today asks whether a surface is converging, so no one ever decides to stop patching. The queue grows, agent time goes to point fixes, and the design question that would end the stream is never posed.
 
@@ -127,7 +127,7 @@ flowchart LR
 
 ### Success Criteria
 
-- On the human-agent-collaboration artifact guard, the first planner run holds the surface and produces one decision issue in place of further point fixes.
+- On the sibling plugin's loose-ends artifact guard, the first planner run holds the surface and produces one decision issue in place of further point fixes.
 - Over time, each surface's open issue count falls or stays flat while fix-queue keeps running.
 - Decision issues close with a chosen option within an agreed period rather than accumulating in `ready-for-human`; the R13 report makes their age visible.
 
@@ -161,5 +161,5 @@ flowchart LR
 - `workflows/fix-queue.js`: admission filters open issues on `ready-for-agent`; the admission schema predicts files per fix.
 - `skills/issue-triage/SKILL.md`: no reachability or convergence criterion for `ready-for-agent`.
 - `skills/writing-dispatch-prompts/reference/guard-code-precedents.md`: "Blocklisting input shapes fails".
-- human-agent-collaboration-claude-plugin: issues #514, #506, #498, #490, #487, #481; PRs #515, #510, #507; `hooks/lib/loose-ends.mjs`.
+- A sibling internal plugin's issue tracker: issues #514, #506, #498, #490, #487, #481; PRs #515, #510, #507; `hooks/lib/loose-ends.mjs`.
 - Related: #133 (`docs/plans/2026-10-09-1811-feat-verifier-mechanical-gate-plan.md`), #137, #138, `docs/ideation/2026-10-09-fixer-verifier-agent-team-ideation.html` idea 4.
