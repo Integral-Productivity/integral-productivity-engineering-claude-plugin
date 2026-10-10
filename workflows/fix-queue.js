@@ -106,6 +106,8 @@ function shaText(sha) {
 const MAX_FIXES = positiveInt('maxFixes', A.maxFixes, 3)
 const MIN_BUDGET = positiveInt('minBudgetPerFix', A.minBudgetPerFix, 150000)
 const MAX_REWORK = 2
+// Field-only retries per issue that do not use a rework round (issue #116).
+const MAX_FIELD_RETRIES = 1
 const WT_ROOT = A.worktreeRoot || `${A.repoPath}/.claude/worktrees`
 const FIXER = 'integral-productivity-engineering:fixer'
 const VERIFIER = 'integral-productivity-engineering:verifier'
@@ -350,12 +352,28 @@ PR conventions: never push and never open a pull request; the lead does both aft
 MCP roster: none; \`gh\` reads only.`
 }
 
-function fixerPrompt(item, round, previous, verdict) {
+// fieldCheck: on a field-only retry, the workflow's own field-check verdict;
+// verdict is then the one that opened the round (null in round 0).
+function fixerPrompt(item, round, previous, verdict, fieldCheck = null) {
   const common = `${dispatchHeader(item)}
 Commit trailers: ${A.trailers || 'the ones your profile and the repo require'}. Use \`Closes #${item.number}\`.
 Plan files go outside the repo${A.scratch ? `, under '${A.scratch}'` : ''}, named <repo>-${item.number}-plan.md or <repo>-${item.number}-rework-<n>.md; keep them.
 
 Submission: do NOT use SendMessage. Your final output IS your submission: fill every field of the schema, and put the whole message, in the reference/fixer-submission.md format, in \`submission_text\`. If you cannot finish, return status "blocked" with the blocker.`
+  if (fieldCheck) {
+    const opener = verdict
+      ? `\nThe verdict that opened this round${verdict.fromWorkflow ? " (the workflow's own check, not the verifier)" : ', from the verifier'}, verbatim; its BLOCKING findings still stand:\n${fence('round verdict', verdict.report_text)}\n`
+      : ''
+    return `You are the fixer for this issue. This is a field-only retry ${round === 0 ? 'of your first submission' : `within REWORK round ${round} of ${MAX_REWORK}`}. The fix-queue workflow's own check (not the verifier; the submission never reached it) found missing or invalid submission fields. A field-only retry does not use a rework round. Each issue gets one; another field failure uses a round. Correct the submission. Change code only if a field cannot be made true without it, and then through ce-work with new commits; never amend, rebase or reset a commit you already submitted.
+
+The workflow's own check, verbatim:
+${fence('verdict', fieldCheck.report_text)}
+${opener}
+Your previous submission, verbatim:
+${fence('previous submission', previous.submission_text || JSON.stringify(previous))}
+
+${common}`
+  }
   if (round === 0) return `You are the fixer for this issue.\n\n${common}`
   const prevSha = shaText(previous.sha)
   const source = verdict.fromWorkflow
@@ -410,27 +428,48 @@ async function fixOne(item) {
   const label = `#${item.number}`
   let previous = null
   let verdict = null
+  let fieldRetries = 0
   const history = []
   for (let round = 0; round <= MAX_REWORK; round++) {
-    if (budget.total && budget.remaining() < MIN_BUDGET) {
-      log(`${label}: ${round === 0 ? 'deferred' : `stopped before rework round ${round}`}, ${Math.round(budget.remaining() / 1000)}k tokens left, below ${Math.round(MIN_BUDGET / 1000)}k`)
-      return round === 0
-        ? { number: item.number, outcome: 'deferred', reason: 'token budget', branch: item.branch, worktree: item.worktree }
-        : { number: item.number, outcome: 'escalated', reason: `token budget ran low before rework round ${round}; last verdict: ${clean(verdict && verdict.verdict, 40)}`, sha: shaText(previous && previous.sha), branch: item.branch, worktree: item.worktree, history }
+    // The verdict that opened this round, kept for a field-only retry's prompt.
+    const opener = verdict
+    let fieldCheck = null
+    let submission
+    let missing
+    for (;;) {
+      if (budget.total && budget.remaining() < MIN_BUDGET) {
+        const where = fieldCheck ? `the field-only retry in round ${round}` : `rework round ${round}`
+        log(`${label}: ${round === 0 && !fieldCheck ? 'deferred' : `stopped before ${where}`}, ${Math.round(budget.remaining() / 1000)}k tokens left, below ${Math.round(MIN_BUDGET / 1000)}k`)
+        return round === 0 && !fieldCheck
+          ? { number: item.number, outcome: 'deferred', reason: 'token budget', branch: item.branch, worktree: item.worktree }
+          : { number: item.number, outcome: 'escalated', reason: `token budget ran low before ${where}; last verdict: ${clean((fieldCheck || verdict) && (fieldCheck || verdict).verdict, 40)}`, sha: shaText(previous && previous.sha), branch: item.branch, worktree: item.worktree, history }
+      }
+      submission = await agent(fixerPrompt(item, round, previous, fieldCheck ? opener : verdict, fieldCheck), {
+        label: `fixer ${label} r${round}${fieldCheck ? ' retry' : ''}`, phase: 'Fix', agentType: FIXER, schema: SUBMISSION_SCHEMA,
+      })
+      if (!submission) {
+        return { number: item.number, outcome: 'blocked', reason: 'fixer returned nothing', branch: item.branch, worktree: item.worktree, history }
+      }
+      if (submission.status !== 'submitted') {
+        return { number: item.number, outcome: 'blocked', reason: submission.status === 'blocked' ? clean(submission.blocker || 'blocked without a reason') : `fixer returned status ${clean(JSON.stringify(submission.status), 60)}`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
+      }
+      missing = missingFields(submission, item)
+      if (!missing.length || fieldRetries >= MAX_FIELD_RETRIES) break
+      // The first field failure for an issue is sent back in the same round:
+      // a bad field is not a review of the code, so it uses no rework round.
+      fieldRetries++
+      fieldCheck = {
+        verdict: 'REWORK', sha: shaText(submission.sha), fromWorkflow: true,
+        findings: [{ severity: 'BLOCKING', text: `submission is missing required fields: ${missing.join(', ')}` }],
+        report_text: `REWORK from the fix-queue workflow before verification, as a field-only retry (it does not use a rework round, and it is this issue's only one): the submission is missing or has invalid fields: ${missing.join(', ')}. See reference/fixer-submission.md.`,
+      }
+      history.push({ round, sha: shaText(submission.sha), verdict: 'REWORK', fieldRetry: true })
+      previous = submission
+      log(`${label}: field-only retry in round ${round} (missing or invalid: ${clean(missing.join(', '), 200)}); no rework round used`)
     }
-    const submission = await agent(fixerPrompt(item, round, previous, verdict), {
-      label: `fixer ${label} r${round}`, phase: 'Fix', agentType: FIXER, schema: SUBMISSION_SCHEMA,
-    })
-    if (!submission) {
-      return { number: item.number, outcome: 'blocked', reason: 'fixer returned nothing', branch: item.branch, worktree: item.worktree, history }
-    }
-    if (submission.status !== 'submitted') {
-      return { number: item.number, outcome: 'blocked', reason: submission.status === 'blocked' ? clean(submission.blocker || 'blocked without a reason') : `fixer returned status ${clean(JSON.stringify(submission.status), 60)}`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
-    }
-    const missing = missingFields(submission, item)
     if (missing.length) {
-      // A submission missing evidence never reaches the verifier: it is
-      // returned like a REWORK and costs a round.
+      // A submission missing evidence never reaches the verifier. After the
+      // issue's one field-only retry, it is returned like a REWORK and costs a round.
       verdict = {
         verdict: 'REWORK', sha: shaText(submission.sha), fromWorkflow: true,
         findings: [{ severity: 'BLOCKING', text: `submission is missing required fields: ${missing.join(', ')}` }],
