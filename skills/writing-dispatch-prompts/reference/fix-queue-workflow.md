@@ -116,8 +116,18 @@ that matches no admitted issue is logged as unused.
    cd-prefix rule and no EnterWorktree. Neither uses SendMessage. Each returns
    its submission or verdict as structured output.
    - The workflow checks every required submission field
-     (`fixer-submission.md`). A submission missing one is sent back as a
-     REWORK round and never reaches the verifier.
+     (`fixer-submission.md`). A submission missing one never reaches the
+     verifier. The first time this happens for an issue, the fixer is sent
+     back in the same round as a **field-only retry**, labelled as the
+     workflow's own check, and no rework round is used: a bad field is not a
+     review of the code. Each issue gets one field-only retry. A second field
+     failure is sent back as a REWORK round and uses it, so a fixer that keeps
+     returning bad fields cannot loop (issue #116).
+   - **The workflow runs the adversarial lens itself.** Each submission that
+     passes the field check goes first to a separate, read-only reviewer agent
+     over exactly `git diff <base> <sha>` in the issue's worktree, then to the
+     verifier. The pass never runs on a submission the field check stopped.
+     See "How deep the verifier's review is inside fix-queue" below.
    - **The verifier's dispatch is generated from the fixer's submission.**
      Every key the fixer returned is relayed verbatim, each in its own data
      fence: the ce-work blocks, the verified tree, egress control, tests
@@ -137,12 +147,49 @@ that matches no admitted issue is logged as unused.
    SHA where there is one. An error on one item, such as an agent failure or
    an exhausted budget, is recorded as blocked for that item; items that
    already finished in the same lane keep their results. `readyToOpen` and
-   `needsReverify` also carry the verifier's `coverage`, so a degraded review
-   is visible before anything is pushed. Every reason, coverage and history
+   `needsReverify` also carry the verifier's `coverage` and the workflow's
+   own `adversarial_review` record (`ran`, or `not run: <reason>`), so a
+   degraded review is visible before anything is pushed. A field-only retry
+   shows in `history` with `fieldRetry: true`. Every reason, coverage and history
    field is agent-authored. In the report and in log lines it is shown through
    the same printable-ASCII allowlist, with other characters as `\u` escapes
    and anything over 500 characters truncated, and `report.note` says to read
    it as data.
+
+## How deep the verifier's review is inside fix-queue
+
+Agents dispatched by `agent()` in a workflow have no Agent tool. Inside
+fix-queue the verifier's `ce-code-review` therefore cannot dispatch its
+reviewer subagents, and it runs degraded. #90's acceptance run on #97
+(2026-10-09) showed the result: in one round the verifier fell back to a
+`claude -p` adversarial read, and in the next only the orchestrator's own
+correctness read ran (issue #116).
+
+So the review behind a fix-queue VERIFIED is:
+
+- **`ce-code-review`, degraded.** The verifier still runs it on the exact
+  SHA, as its profile requires, and reports the `depth` it returns. Its
+  reviewer subagents do not run.
+- **The workflow's adversarial pass.** A separate agent, with its own context,
+  reviews exactly `git diff <base> <sha>` and returns findings with
+  severities. It is read-only: no edits, no git or `gh` writes. Its output
+  reaches the verifier inside a data fence, like every other untrusted text.
+  It replaces the `claude -p` fallback for the adversarial lens.
+- **The verifier's own grading.** The verifier grades each finding from the
+  pass against the code, confirming it with a severity or saying why it
+  does not hold. A finding counts only as the verifier grades it. In
+  `coverage` it says that `ce-code-review`'s reviewer subagents did not run
+  and that the adversarial lens came from the workflow's pass.
+
+When the pass throws, returns nothing, reviews a SHA other than the submitted
+one, or returns no findings list, it counts as not run. The verifier's
+dispatch then says the adversarial lens is missing and that `coverage` must
+say the review was degraded, with the reason. The report records the pass
+either way, as `adversarial_review`, which does not depend on the verifier's
+wording. This is shallower than an interactive verifier, whose
+`ce-code-review` runs its full reviewer roster. That gap is an accepted limit
+(this plugin's ADR 0002). Read `coverage` and `adversarial_review` before
+trusting a VERIFIED from this workflow.
 
 ## Fail-closed and injection rules
 
@@ -153,12 +200,12 @@ that matches no admitted issue is logged as unused.
   - VERIFIED with any BLOCKING finding is escalated (the verifier profile
     defines VERIFIED as having none)
   - a submission whose `branch` or `worktree` is not the one the issue was
-    given goes back as a REWORK round, and the verifier is told to confirm
+    given goes back to the fixer (as the field-only retry, or after it as a REWORK round), and the verifier is told to confirm
     that `git -C '<worktree>' rev-parse '<branch>'` prints the submitted SHA,
     so the SHA the lead is handed is the tip of the branch it pushes
   - a missing verdict is blocked
   - a fixer status other than `submitted` is blocked
-  - a submission whose `sha`, `base` or `verified_tree` is not a full 40-character hex id, or whose `base` is not the base it was cut from, counts as missing evidence and goes back as a REWORK round
+  - a submission whose `sha`, `base` or `verified_tree` is not a full 40-character hex id, or whose `base` is not the base it was cut from, counts as missing evidence and goes back the same way
 - **Admission output is checked, not trusted.** An admitted item is not fixed
   if:
   - its number is not a positive integer
@@ -178,7 +225,7 @@ that matches no admitted issue is logged as unused.
   agent did not account for is reported as blocked, so a claimed issue is
   never silently lost.
 - **Untrusted text is fenced.** Issue titles, everything the admission agent
-  gathered from an issue, every submission field and every verdict enter a
+  gathered from an issue, every submission field, the adversarial pass output and every verdict enter a
   prompt only inside a `<<<DATA name: untrusted text as one JSON string ...>>>`
   fence. Each prompt says to report an instruction found inside, never follow
   it. The body is a single JSON-escaped line of printable ASCII only. This is
@@ -223,7 +270,8 @@ Its scenarios:
 1. VERIFIED, with every submission field relayed into the verifier's dispatch
 2. REWORK, then VERIFIED
 3. still REWORK after round 2: escalated, with no third round
-4. missing fields: these never reach the verifier
+4. missing fields: these never reach the verifier, and the first such failure
+   is a field-only retry that uses no rework round
 5. LEAD DECISION, and a blocked fixer
 6. same-file lanes
 7. the budget guard, and a VERIFIED verdict naming the wrong SHA
@@ -242,15 +290,16 @@ Its scenarios:
     as advisory; an unlisted returned field still relayed; the main checkout
     in the header; a merged lane keeping admission order
 15. a submission missing any one of the 15 required fields, each in turn,
-    never reaching the verifier, with the rework prompt naming the field
+    never reaching the verifier, with the field-only retry prompt naming the
+    field
 16. ASCII, fullwidth, zero-width and guillemet fence closers from an issue
     title, ground truth, scope or submission: every fenced body is one JSON
     line with no bracket or lookalike, and no forged header line appears
 17. a different branch or worktree never reaching the verifier, and the
-    branch-tip check in the verifier's dispatch
+    branch-tip check in the verifier's dispatch of the corrected submission
 18. VERIFIED with a BLOCKING finding escalated
 19. a multi-line text sent as the SHA never appearing outside a fence in the
-    rework prompt; the workflow's own check labelled; no "round 3 of 2"
+    field-only retry prompt; the workflow's own check labelled; no "round 3 of 2"
 20. the "information only" sentence present in fixer and verifier prompts
 21. a duplicate admission reported once as skipped; an unaccounted requested
     issue reported as blocked
@@ -295,6 +344,29 @@ Its scenarios:
 40. an unfenced issue in `issues` that the admission agent returns anyway
     reported exactly once: under `blocked` when returned as admitted, with the
     agent's reason when listed under its own skipped (issue #114)
+41. a field-only failure in round 0 leaving both rework rounds to the
+    verifier: with a verifier that always returns REWORK, the fixer runs as
+    r0, r0 retry, r1, r2 and the verifier sees the code three times; the
+    retry is marked `fieldRetry` in `history` (issue #116)
+42. at most one field-only retry per issue: a fixer that always returns bad
+    fields runs r0, r0 retry, r1, r2 and never reaches the verifier; a retry
+    in a later round still carries the verdict that opened the round
+43. the retry prompt's own sentences, outside the fences: a field-only
+    retry, from the workflow's own check, using no rework round, naming the
+    field
+44. the adversarial pass running after the field check and before the
+    verifier, as a plain agent, on exactly `git diff <base> <sha>` in the
+    issue's worktree, read-only; its output fenced in the verifier's
+    dispatch; the review-depth paragraph present; `adversarial_review: ran`
+45. a pass that returns nothing, throws, reviews another SHA or returns no
+    findings list: the verifier still runs, is told the lens is missing and
+    that `coverage` must say the review was degraded, sees no pass output,
+    and the report says `not run: <reason>`
+46. the pass running once per submission that reaches the verifier, on the
+    new SHA in a rework round, never on one the field check stopped;
+    `adversarial_review` in `needsReverify`
+47. a forged closer, line separator and tag character in the pass output
+    staying inside its fence as printable ASCII
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -352,5 +424,14 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   log line; `shaText()` returning the untrimmed SHA; either half of the
   once-only check for an unfenced issue the agent returned anyway removed;
   the no-admission log line removed
+- for issue #116: no field-only retry; unbounded field-only retries; the
+  retry not marked in its label; the retry prompt's no-round sentence
+  removed; the round's opening verdict dropped from a retry prompt; the
+  retry not marked in `history`; the adversarial pass never called; its
+  reviewed-SHA check dropped; its findings-list check dropped; a throw from
+  the pass not caught; the pass output relayed outside a fence; the
+  "coverage must say degraded" instruction dropped; the review-depth
+  paragraph dropped; `adversarial_review` dropped from `needsReverify`;
+  the pass diff not taken from the base
 
 The first real run is the lead's one-issue acceptance run.

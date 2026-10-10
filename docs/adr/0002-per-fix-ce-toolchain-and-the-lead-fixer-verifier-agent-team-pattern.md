@@ -144,5 +144,13 @@ Refinements to the profiles found during the runs are tracked separately:
   grammar and result fields, and the `work_engine_mode` and `cross_model_review_mode` keys.
   The profiles pin the version they were checked against (3.30.4). A change upstream means
   updating the profiles, and this record only if the decision itself changes.
+- **Accepted limit: the review inside the fix-queue Workflow is shallower than an interactive
+  verifier's.** Agents a workflow dispatches have no Agent tool, so the verifier's
+  `ce-code-review` there cannot dispatch its reviewer subagents. The workflow runs the
+  adversarial lens itself, as a separate read-only agent over the exact SHA's diff, and the
+  verifier grades its findings. The other reviewer personas do not run. The verifier's
+  `coverage` and the report's `adversarial_review` record this on every item
+  ([#116](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/116);
+  `reference/fix-queue-workflow.md` in the `writing-dispatch-prompts` skill).
 - Until #90 ships, the lead still has to remember the sequence. The profiles and #89 reduce
   what can go wrong inside it, but do not remove the need to start it correctly.
