@@ -1,0 +1,37 @@
+workflows/fix-queue.js
+  s_5343ec90be42c6::t_bf5c40b59abc94 416-457,460,639
+  s_5343ec90be42c6::t_8657f42282cf61 572
+  s_5343ec90be42c6::t_61821dc1adbc25 547-549
+  s_5343ec90be42c6::t_1a0c9d22a5660f 499
+  s_5343ec90be42c6::t_d7ad9770863cfd 207-229
+  s_5343ec90be42c6::t_f06ab2914717b5 477-478
+  s_5343ec90be42c6::t_4a6b0dde05292b 628,633
+tools/fix-queue.test.mjs
+  s_5343ec90be42c6::t_cccd10c39df362 495-499
+  s_5343ec90be42c6::t_2e730daf1eb7ca 532
+  s_259b51dfce12f9::t_7386483ae7907f 503-531,533-550
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66e06cc64a0e06c0d3991661ec36a4da90f958ec",
+  "prompts": {},
+  "sessions": {
+    "s_259b51dfce12f9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "828522d9-a284-4545-a896-64d801706748",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    },
+    "s_5343ec90be42c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21b6a401-ac02-4371-a127-e6ee2049193a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
