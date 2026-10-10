@@ -73,8 +73,14 @@ issue number to the files its fixer may edit. When the lead gives one, it is
 the edit boundary. Without one, the scope the admission agent read from the
 issue is shown to the fixer only as an advisory, fenced suggestion, because
 anyone can edit an issue body on a public repo. When `scopeFence` is given,
-an admitted issue it does not name is not fixed: it is reported under
-`skipped` and never gets the guessed scope. A malformed `scopeFence` stops
+it applies before admission: the admission agent is given only the issues it
+names (those in `issues`, in that order, or, without `issues`, the fenced
+issues in ascending order instead of the backlog sweep). An issue in `issues`
+that the fence does not name is never claimed, branched or counted against
+`maxFixes`; it is reported once under `skipped`. If no issue is left, no
+admission agent runs. An issue the admission agent returns anyway is not
+fixed and never gets the guessed scope: it is reported under `blocked`,
+because it may carry the claim label. A malformed `scopeFence` stops
 the workflow before an agent runs, rather than silently falling back to that
 guess. It is malformed if a key is not an issue number, if a value is not
 non-empty text, or if a key is outside `issues` when `issues` is given. A key
@@ -259,8 +265,9 @@ Its scenarios:
 26. trimmed SHA, base and verified tree in `readyToOpen` and `needsReverify`
 27. a rejected-first duplicate never fixed; an issue both skipped and
     admitted reported once, as skipped
-28. with `scopeFence` given, an admitted issue it does not name skipped, with
-    no agent run and no guessed scope
+28. with `scopeFence` given, an issue the admission agent returns that the
+    fence does not name reported as blocked, with no agent run and no guessed
+    scope
 29. malformed `maxFixes` or `minBudgetPerFix` (a string, 0, negative,
     non-integer, null, a boolean) throwing before any agent runs
 30. `issues: []` throwing; the backlog sweep only when `issues` is absent
@@ -271,6 +278,17 @@ Its scenarios:
 33. the admission prompt's write boundary
 34. VERIFIED with a `findings` that is not a list escalated
 35. `scratch` required
+36. with `scopeFence` and `issues`, an unfenced issue absent from the admission
+    prompt, so never labelled or branched; the cap counting only fenced
+    issues; the unfenced issue reported once under `skipped` (issue #114)
+37. with `scopeFence` and no `issues`, the fenced issues in ascending order
+    as the candidates, not the backlog sweep; a dropped fenced candidate
+    accounted for
+38. a `scopeFence` naming none of `issues`: no admission agent runs
+39. every SHA trimmed in escalated and blocked results and their history (a
+    rework cap, a LEAD DECISION, a VERIFIED for another SHA, a VERIFIED with a
+    BLOCKING finding or without a findings list, a blocked fixer, a null
+    verdict, a budget stop), and in the VERIFIED log line
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -322,5 +340,9 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
 - each of the 15 submission fields made optional. The checks for `sha`,
   `base` and `verified_tree` are equivalent mutants: a missing value still
   fails their 40-character hex check, so behavior does not change
+- for issue #114: the fence ignored when building the admission candidates;
+  the candidate set taken from `issues` instead; the skip for an unfenced
+  issue removed; the no-candidate guard removed; a raw SHA in the VERIFIED
+  log line; `shaText()` returning the untrimmed SHA
 
 The first real run is the lead's one-issue acceptance run.

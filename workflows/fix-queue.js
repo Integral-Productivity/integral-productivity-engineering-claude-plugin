@@ -25,7 +25,8 @@ export const meta = {
 //   trailers      optional  commit trailers the fixer adds
 //   worktreeRoot  optional  absolute directory for the worktrees, default <repoPath>/.claude/worktrees
 //   scratch       required  absolute scratch directory for plan files and the verifier's work
-//   scopeFence    optional  { "<issue number>": "<files the fixer may edit>" }; wins over the admission agent's guess
+//   scopeFence    optional  { "<issue number>": "<files the fixer may edit>" }; wins over the admission agent's guess,
+//                           and limits admission to the issues it names
 //
 // It stops at VERIFIED: no push, no pull request, no adversary review. Those
 // are outward-facing or lead-owned; the report hands them over.
@@ -204,11 +205,22 @@ const VERDICT_SCHEMA = {
 // ---- Admit ------------------------------------------------------------------
 
 phase('Admit')
-const wanted = A.issues !== undefined
-  ? `exactly these issue numbers, in this order: ${A.issues.join(', ')}`
+// The lead's scope fence applies before admission: the admission agent only
+// ever sees fenced issues, so an issue outside the fence is never labelled,
+// never branched, and never takes one of the maxFixes slots. With args.issues,
+// the candidates are those issues the fence names, in args.issues order;
+// without it, the fenced issues in ascending order, never the backlog sweep.
+const fenced = A.scopeFence ? Object.keys(A.scopeFence).map(Number).sort((a, b) => a - b) : null
+const candidates = A.issues !== undefined
+  ? (fenced ? A.issues.filter((n) => fenced.includes(n)) : A.issues)
+  : fenced
+const fencedOut = A.issues !== undefined && fenced ? A.issues.filter((n) => !fenced.includes(n)) : []
+const wanted = candidates
+  ? `exactly these issue numbers, in this order: ${candidates.join(', ')}`
   : 'every open issue labelled `ready-for-agent`, oldest first'
 
-const admission = await agent(
+// No candidate left: no admission agent runs, so nothing is claimed.
+const admission = candidates && candidates.length === 0 ? { admitted: [], skipped: [] } : await agent(
   `You are the admission step of the fix-queue workflow for ${A.repo}, whose main checkout is '${A.repoPath}'. You do not implement anything.
 
 Consider ${wanted}. Admit at most ${MAX_FIXES}; every other candidate goes in \`skipped\` with reason "over the fix cap (${MAX_FIXES})".
@@ -229,9 +241,10 @@ if (!admission) throw new Error('admission returned nothing; no issue was claime
 const skipped = (admission.skipped || []).map((s) => ({ number: Number.isInteger(s.number) ? s.number : clean(s.number, 20), reason: clean(s.reason), outcome: 'skipped' }))
 
 // The admission agent's output is checked, not trusted: an item it returns
-// that is malformed, not requested, or over the cap is not fixed. It may
-// already carry the claim label, so it is reported as blocked for the lead.
-const requested = A.issues !== undefined ? new Set(A.issues) : null
+// that is malformed, not a candidate (so also one outside args.scopeFence), or
+// over the cap is not fixed. It may already carry the claim label, so it is
+// reported as blocked for the lead.
+const requested = candidates ? new Set(candidates) : null
 const admitted = []
 const rejected = []
 const decided = new Set()
@@ -260,11 +273,13 @@ for (const it of admission.admitted || []) {
                 : !Array.isArray(it.files) || !it.files.every((f) => typeof f === 'string') ? 'files is not a list of paths'
                   : null
   if (problem) rejected.push({ number: Number.isInteger(n) ? n : clean(n, 20), outcome: 'blocked', reason: `admission output rejected: ${problem}`, branch: clean(it && it.branch, 200), worktree: clean(it && it.worktree, 300) })
-  else if (A.scopeFence && !Object.prototype.hasOwnProperty.call(A.scopeFence, String(n))) {
-    // When the lead gives a scope fence, an issue it does not name is not
-    // fixed: it never falls back to the scope guessed from the issue text.
-    skipped.push({ number: n, reason: 'args.scopeFence was given but does not name this issue; not fixed (it may carry the claim label)', outcome: 'skipped', branch: it.branch, worktree: it.worktree })
-  } else admitted.push(it)
+  else admitted.push(it)
+}
+// A requested issue outside args.scopeFence never reached admission: it is
+// reported once, as skipped, unless the admission agent returned it anyway
+// (then it is already under blocked, and may carry the claim label).
+for (const n of fencedOut) {
+  if (!rejected.some((r) => r.number === n)) skipped.push({ number: n, reason: 'args.scopeFence does not name this issue; not sent to admission, so not claimed, branched or counted against maxFixes', outcome: 'skipped' })
 }
 // Every requested issue is accounted for: one the admission agent dropped
 // (it may already carry the claim label) is reported, not lost.
@@ -442,7 +457,7 @@ async function fixOne(item) {
       if (blocking.length) {
         return { number: item.number, outcome: 'escalated', reason: `verifier returned VERIFIED with ${blocking.length} BLOCKING finding(s)`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
       }
-      log(`${label}: VERIFIED at ${submission.sha} after ${round} rework round(s)`)
+      log(`${label}: VERIFIED at ${shaText(submission.sha)} after ${round} rework round(s)`)
       return { number: item.number, outcome: 'verified', sha: submission.sha.trim(), base: submission.base.trim(), verified_tree: submission.verified_tree.trim(), branch: item.branch, worktree: item.worktree, coverage: clean(verdict.coverage || '(not reported)', 300), history }
     }
     if (verdict.verdict !== 'REWORK') {

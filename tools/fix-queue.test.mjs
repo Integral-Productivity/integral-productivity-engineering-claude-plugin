@@ -323,12 +323,67 @@ test('27. accounting: a rejected-first duplicate is never fixed; an issue both s
   assert.equal(both.report.skipped.filter((s) => s.number === 74).length, 1, 'reported once');
   assert.match(both.report.skipped[0].reason, /also listed as admitted; not fixed/);
 });
-test('28. with scopeFence given, an admitted issue it does not name is skipped, never given the guessed scope', async () => {
+test('28. with scopeFence given, an admitted issue it does not name is never fixed or given the guessed scope', async () => {
+  // The admission agent misbehaves and admits #76 anyway: the backstop rejects it.
   const { report, prompts } = await scenario('scopeskip', { admitted: [item(75, ['a']), item(76, ['b'])], args: { scopeFence: { 75: 'src/a.js' } }, fixer: (n) => SUB(n, `s${n}`), verifier: (n) => ({ verdict: 'VERIFIED', sha: H(`s${n}`), findings: [], report_text: 'ok' }) });
   assert.deepEqual(report.readyToOpen.map((r) => r.issue), [75]);
-  assert.ok(report.skipped.some((s) => s.number === 76 && /does not name this issue/.test(s.reason)));
+  assert.ok(report.blocked.some((b) => b.number === 76 && /not one of the requested issues/.test(b.reason)), 'an admitted issue outside the fence is reported as blocked (it may carry the claim label)');
   assert.ok(!prompts.some((p) => /#76 /.test(p.label)), 'no agent ran for #76');
   assert.ok(!prompts.some((p) => p.prompt.includes('suggested scope')), 'the guessed scope never appears when scopeFence is given');
+});
+
+// Issue #114: scopeFence applies before admission, and every reported SHA is trimmed.
+const admitPrompt = (prompts) => prompts.find((p) => p.label === 'admit').prompt;
+test('36. with scopeFence and issues, an issue outside the fence never reaches admission, is never claimed, and uses no fix slot', async () => {
+  const { report, prompts } = await scenario('fencefirst', { admitted: [item(76, ['b'])], args: { issues: [75, 76], maxFixes: 1, scopeFence: { 76: 'src/b.js' } }, fixer: (n) => SUB(n, `s${n}`), verifier: (n) => ({ verdict: 'VERIFIED', sha: H(`s${n}`), findings: [], report_text: 'ok' }) });
+  const ap = admitPrompt(prompts);
+  assert.ok(ap.includes('exactly these issue numbers, in this order: 76.'), 'the admission candidate list is the fenced issues only');
+  assert.ok(!/\b75\b/.test(ap), 'the unfenced issue is not in the admission prompt, so it is never labelled or branched');
+  assert.ok(ap.includes('Admit at most 1'), 'the cap applies to the fenced candidates');
+  assert.deepEqual(report.readyToOpen.map((r) => r.issue), [76], 'the fenced issue gets the one fix slot');
+  const s75 = report.skipped.filter((s) => s.number === 75);
+  assert.equal(s75.length, 1, '#75 is reported once');
+  assert.match(s75[0].reason, /not sent to admission/);
+  assert.equal(s75[0].branch, undefined, 'no branch for an issue never admitted');
+  assert.equal(report.blocked.length, 0, 'the unfenced issue is not reported as unaccounted');
+});
+test('37. with scopeFence and no issues, the candidates are the fenced issues, not the backlog sweep', async () => {
+  const { prompts } = await scenario('fencesweep', { admitted: [], args: { scopeFence: { 90: 'a', 12: 'b' } }, fixer: () => {}, verifier: () => {} });
+  const ap = admitPrompt(prompts);
+  assert.ok(ap.includes('exactly these issue numbers, in this order: 12, 90.'), 'fenced issues, ascending');
+  assert.ok(!ap.includes('every open issue labelled `ready-for-agent`'), 'no backlog sweep when scopeFence is given');
+  const lost = await scenario('fencelost', { admitted: [], args: { scopeFence: { 91: 'a' } }, fixer: () => {}, verifier: () => {} });
+  assert.ok(lost.report.blocked.some((b) => b.number === 91 && /did not account for it/.test(b.reason)), 'a fenced candidate the admission step drops is accounted for');
+});
+test('38. scopeFence naming none of the issues runs no admission agent at all', async () => {
+  const { report, prompts } = await scenario('fencenone', { admitted: [item(77, ['a'])], args: { issues: [77], scopeFence: {} }, fixer: () => assert.fail('must not run'), verifier: () => assert.fail() });
+  assert.equal(prompts.length, 0, 'no agent ran, so nothing was claimed');
+  assert.deepEqual(report.skipped.map((s) => s.number), [77]);
+});
+test('39. every SHA in escalated, blocked and history entries, and in the log, is trimmed', async () => {
+  const pad = (tag) => ({ sha: ` ${H(tag)}\n`, base: `${'b'.repeat(40)} `, verified_tree: `\t${H('t' + tag)} ` });
+  const shasOf = (r) => [r.sha, ...(r.history || []).map((h) => h.sha)];
+  const cases = {
+    'still REWORK after round 2': { fixer: (n, r) => SUB(n, `s${r}`, pad(`s${r}`)), verifier: (n, r) => ({ verdict: 'REWORK', sha: H(`s${r}`), findings: [], report_text: 'R' }), want: 'escalated' },
+    'LEAD DECISION': { fixer: (n) => SUB(n, 's0', pad('s0')), verifier: () => ({ verdict: 'LEAD DECISION', sha: H('s0'), findings: [], report_text: 'L' }), want: 'escalated' },
+    'VERIFIED for another SHA': { fixer: (n) => SUB(n, 's0', pad('s0')), verifier: () => ({ verdict: 'VERIFIED', sha: H('other'), findings: [], report_text: 'ok' }), want: 'escalated' },
+    'VERIFIED with a BLOCKING finding': { fixer: (n) => SUB(n, 's0', pad('s0')), verifier: () => ({ verdict: 'VERIFIED', sha: H('s0'), findings: [{ severity: 'BLOCKING', text: 'x' }], report_text: 'ok' }), want: 'escalated' },
+    'VERIFIED without a findings list': { fixer: (n) => SUB(n, 's0', pad('s0')), verifier: () => ({ verdict: 'VERIFIED', sha: H('s0'), report_text: 'ok' }), want: 'escalated' },
+    'fixer blocked with a SHA': { fixer: () => ({ status: 'blocked', blocker: 'x', sha: ` ${H('s0')}\n` }), verifier: () => assert.fail(), want: 'blocked' },
+    'verifier returned nothing': { fixer: (n) => SUB(n, 's0', pad('s0')), verifier: () => null, want: 'blocked' },
+  };
+  for (const [name, c] of Object.entries(cases)) {
+    const { report } = await scenario(`trim-${name}`, { admitted: [item(78, ['a'])], fixer: c.fixer, verifier: c.verifier });
+    const r = report[c.want].find((x) => x.number === 78);
+    assert.ok(r, `${name}: reported as ${c.want}`);
+    for (const sha of shasOf(r)) assert.match(sha, /^[0-9a-f]{40}$/, `${name}: trimmed SHA, got ${JSON.stringify(sha)}`);
+  }
+  let lowCalls = 0;
+  const low = { total: 1000000, spent: () => 0, remaining: () => (lowCalls >= 2 ? 1000 : 1000000) };
+  const budgetCase = await scenario('trim-budget', { admitted: [item(79, ['a'])], budgetObj: low, fixer: (n, r) => { lowCalls++; return SUB(n, `s${r}`, pad(`s${r}`)); }, verifier: (n, r) => { lowCalls++; return { verdict: 'REWORK', sha: H(`s${r}`), findings: [], report_text: 'R' }; } });
+  for (const sha of shasOf(budgetCase.report.escalated[0])) assert.match(sha, /^[0-9a-f]{40}$/, 'budget stop: trimmed SHA');
+  const ok = await scenario('trim-log', { admitted: [item(80, ['a'])], fixer: (n) => SUB(n, 's80', pad('s80')), verifier: () => ({ verdict: 'VERIFIED', sha: H('s80'), findings: [], report_text: 'ok' }) });
+  assert.ok(ok.logs.some((l) => l.includes(`VERIFIED at ${H('s80')} after`)), 'the VERIFIED log line carries the trimmed SHA');
 });
 
 // Lead-requested round after the adversary review: S1-S5, N1, N2.
