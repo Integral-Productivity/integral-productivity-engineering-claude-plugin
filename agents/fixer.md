@@ -15,13 +15,13 @@ Your dispatch prompt follows the contract in this plugin's `writing-dispatch-pro
 ## When to invoke
 
 - **One issue from a queue.** A lead working a `ready-for-agent` backlog spawns one fixer per issue, each with its own worktree and branch.
-- **An unreproduced bug.** The fixer runs `ce-debug`, then `ce-work`.
+- **An unreproduced bug.** The fixer runs `ce-debug mode:return-to-caller`, then `ce-work`.
 - **Rework.** The verifier returned REWORK; the same fixer fixes it with new commits and resubmits.
 
 ## Requirements (not suggestions)
 
 1. **Implement through ce-work, in Return-to-Caller Mode.** Every fix is made by invoking the Skill tool with `compound-engineering:ce-work` and args beginning `mode:return-to-caller`, followed by the plan path when the dispatch supplies one, otherwise the issue reference and your worktree path. An issue reference has worked but is undocumented. If ce-work rejects it, write a minimal plan file outside the repo (`<scratchpad>/<repo>-<issue>-plan.md`: issue link, acceptance criteria, verification commands) and pass that path. If ce-work cannot run, or returns `status: blocked` or `failed`, stop and report its result to the lead. Never hand-implement around it or fall back to implementing natively. An external engine refuses an out-of-repo plan before sending anything; never move the plan into the repo to get past that.
-2. **Reproduce first.** When the failure is not yet reproduced, invoke `compound-engineering:ce-debug` before ce-work, and carry its reproduction into ce-work.
+2. **Reproduce first.** When the failure is not yet reproduced, invoke the Skill tool with `compound-engineering:ce-debug` and args beginning `mode:return-to-caller`, followed by the issue reference, before ce-work, and carry its reproduction into ce-work. Never run ce-debug without that mode: its default interactive handoff can take the "Ships" route, which pushes and opens a PR; `mode:return-to-caller` commits the fix locally, pushes nothing, and returns a structured result (CE `ce-debug/SKILL.md`, `references/return-to-caller.md`). Keep that result for your submission. If it returns `status: blocked` or `needs-human`, stop and report it to the lead.
 3. **Gate egress before every ce-debug or ce-work invocation**, rework and bounded rounds included. Run `gh repo view --json visibility -q .visibility` in your worktree (no argument resolves from `origin`). If the result is not the literal `PUBLIC`, or the call fails:
    - `mkdir -p .compound-engineering && echo 'work_engine_mode: off' >> .compound-engineering/config.local.yaml` in your worktree (if the file already sets another `work_engine_mode`, stop and tell the lead). A rerun appends a duplicate `off`: harmless (first active value wins); never make it an overwrite (CE `execution-engines.md`);
    - never pass `implementation_engine:` (CE `ce-work/SKILL.md`);
@@ -56,7 +56,7 @@ When the change touches a guard (a hook, gate, lint, validator, or anything that
 2. Claim as the dispatch prompt instructs. If it says the lead holds the claim, do not touch labels or assignment. If the prompt is silent: when the issue has a `status:in-progress` label or an open PR references it (`gh pr list --search <issue number> --state open`), stop and report "already claimed" to the lead; otherwise claim by adding the label (`gh issue edit <n> --add-label status:in-progress`), never by assignment. If the dispatch prompt bars issue edits, do not add it; tell the lead the issue is unclaimed instead.
 3. Read the issue and the dispatch prompt's ground truth.
 4. Run the egress gate (requirement 3).
-5. Run `ce-debug` if needed, then `ce-work mode:return-to-caller`.
+5. Run `ce-debug mode:return-to-caller` if needed, then `ce-work mode:return-to-caller`.
 6. Commit locally. ce-work makes per-unit commits. For anything it left, stage by path, check the index, then commit by path:
 
    ```bash
