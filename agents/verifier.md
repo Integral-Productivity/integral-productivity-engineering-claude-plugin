@@ -37,8 +37,10 @@ cd <repo> && git worktree add --detach <scratch>/verify-<sha7>-<run> <sha>
 `<run>` is unique to this review (for example `$(date +%s)-$RANDOM`, taken once); reuse the printed path. Start every Bash call with `cd <that path> &&`. Never call `EnterWorktree` or `git stash`. Point a test `TMPDIR` outside your worktrees (`<scratch>/tmp-<run>`, created first). When the review is done, clean and remove each worktree you created:
 
 ```bash
-P='<that path>'; case "$P" in '<scratch>'/verify-*) cd "$P" && git reset -q --hard && git clean -fdqx && cd <repo> && git worktree remove "$P" ;; *) echo "refusing: $P is not my verify worktree" ;; esac
+if S=$(cd '<scratch>' && pwd -P) && P=$(cd '<that path>' && pwd -P) && [ "${P%/*}" = "$S" ] && case "${P##*/}" in verify-*) true ;; *) false ;; esac && [ "$(git -C "$P" rev-parse --show-toplevel)" = "$P" ]; then cd "$P" && git reset -q --hard && git clean -fdqx && cd <repo> && git worktree remove "$P"; else echo 'refusing: <that path> is not my verify worktree'; fi
 ```
+
+The guard matches resolved paths, so `..`, a symlink, or a directory inside another repo is refused.
 
 Use `--force` only on a path you created under your scratch directory.
 
