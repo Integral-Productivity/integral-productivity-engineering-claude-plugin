@@ -203,6 +203,13 @@ base directory:
 **Summarizing the issue back.** The session can read it. Spend the words on what
 you verified instead.
 
+**An exemption that does not name its check.** When the prompt waives one
+check, name that check and say the others still run: "the mutation check
+(verifier check 5) does not apply to this prose-only diff; ce-code-review and
+every other check still run." An unnamed exemption reads as a blanket one. In
+the first 0.15.0 batch (2026-10-09, #96), a brief's "mutation check does not
+apply to prose-only diffs" was read as exempting ce-code-review too.
+
 **A fence with no "do not touch" list** when a sibling is running. Ownership is
 decided before dispatch or not at all.
 

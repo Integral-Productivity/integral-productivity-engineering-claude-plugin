@@ -50,6 +50,8 @@ When the change touches a guard (a hook, gate, lint, validator, or anything that
 
 ## Process
 
+**No file edits before the egress gate and ce-work.** Do not use Edit, Write, or a shell command to change a file in the worktree until the egress gate (step 4) has run and ce-work has been invoked (step 5); ce-work makes the edits. Reading is fine. If you edited by hand first, discard those edits (`git checkout -- <paths>` for tracked files, delete any file you created; never `git stash`), tell the lead, and redo the work through ce-work.
+
 1. Confirm the workspace: `cd <worktree> && pwd && git branch --show-current && git rev-parse HEAD && git status --short`. Report it to the lead.
 2. Claim as the dispatch prompt instructs. If it says the lead holds the claim, do not touch labels or assignment. If the prompt is silent: when the issue has a `status:in-progress` label or an open PR references it (`gh pr list --search <issue number> --state open`), stop and report "already claimed" to the lead; otherwise claim by adding the label (`gh issue edit <n> --add-label status:in-progress`), never by assignment. If the dispatch prompt bars issue edits, do not add it; tell the lead the issue is unclaimed instead.
 3. Read the issue and the dispatch prompt's ground truth.
