@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.0...v0.18.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* **fix-queue:** apply scopeFence before admission; trim every reported SHA ([#131](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/131)) ([e1983df](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/e1983df969192c11121244c5fc9586e338983974))
+
 ## [0.18.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.17.1...v0.18.0) (2026-10-09)
 
 
