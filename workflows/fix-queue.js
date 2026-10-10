@@ -286,9 +286,19 @@ if (REVERIFY) {
   } else {
     const adversarial = await adversarialPass(item, submission, 'reverify')
     if (!adversarial.ran) log(`#${item.number}: adversarial reviewer pass not run on re-verify: ${adversarial.reason}`)
-    const verdict = await agent(reverifyPrompt(item, adversarial), { label: `verifier #${item.number} reverify`, phase: 'Fix', agentType: VERIFIER, schema: VERDICT_SCHEMA })
+    // A throw (an agent error, an exhausted budget) is recorded for the item,
+    // as the fix-mode lane catch does, never a rejected workflow.
+    let verdict
+    let failure = null
+    try {
+      verdict = await agent(reverifyPrompt(item, adversarial), { label: `verifier #${item.number} reverify`, phase: 'Fix', agentType: VERIFIER, schema: VERDICT_SCHEMA })
+    } catch (error) {
+      failure = error
+    }
     const history = [{ round: 'reverify', sha: shaText(R.sha), verdict: clean(verdict && verdict.verdict, 40) }]
-    if (!verdict || typeof verdict.verdict !== 'string') {
+    if (failure) {
+      result = { ...where, outcome: 'blocked', reason: `workflow error: ${clean(failure && failure.message ? failure.message : String(failure))}`, history }
+    } else if (!verdict || typeof verdict.verdict !== 'string') {
       result = { ...where, outcome: 'blocked', reason: 'verifier returned no verdict', history }
     } else if (verdict.verdict !== 'VERIFIED') {
       result = { ...where, outcome: 'escalated', reason: `${clean(verdict.verdict, 40)}: ${clean(verdict.report_text)}; re-verify only, no fixer ran: send it back to a fixer, then re-verify again`, history }
@@ -705,11 +715,14 @@ async function fixOne(item) {
       const problem = verifiedProblem(verdict, submission)
       if (problem) return { number: item.number, outcome: 'escalated', reason: problem, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
       log(`${label}: VERIFIED at ${shaText(submission.sha)} after ${round} rework round(s)`)
-      // submission_text and the scope fence ride along for a needsReverify
-      // item, so the lead can pass them back to a reverify run (issue #113).
+      // submission_text, and the lead's scope fence when there is one, ride
+      // along for a needsReverify item, so the lead can pass them back to a
+      // reverify run (issue #113). The admission agent's fence is a guess from
+      // issue text anyone can edit: it is never carried, so a reverify run
+      // without the lead's fence falls back to the previous diff's files.
       const leadFence = A.scopeFence && A.scopeFence[String(item.number)]
       return { number: item.number, outcome: 'verified', sha: submission.sha.trim(), base: submission.base.trim(), verified_tree: submission.verified_tree.trim(), branch: item.branch, worktree: item.worktree, coverage: clean(verdict.coverage || '(not reported)', 300), adversarial_review: adversarialRecord(adversarial), history,
-        submission_text: clean(submission.submission_text, 20000), scope_fence: clean(leadFence || item.scope_fence, 2000), scope_fence_source: leadFence ? 'lead' : 'admission suggestion (advisory)' }
+        submission_text: clean(submission.submission_text, 20000), ...(leadFence ? { scope_fence: clean(leadFence, 2000) } : {}) }
     }
     if (verdict.verdict !== 'REWORK') {
       return { number: item.number, outcome: 'escalated', reason: `${clean(verdict.verdict, 40)}: ${clean(verdict.report_text)}`, sha: shaText(submission.sha), branch: item.branch, worktree: item.worktree, history }
@@ -775,7 +788,7 @@ function buildReport(results, rejected, skipped) {
     })),
     needsReverify: by('needs-reverify').map((r) => ({
       issue: r.number, branch: r.branch, sha: r.sha, base: r.base, verified_tree: r.verified_tree, worktree: r.worktree, coverage: r.coverage, adversarial_review: r.adversarial_review, reason: r.reason,
-      submission_text: r.submission_text, scope_fence: r.scope_fence, scope_fence_source: r.scope_fence_source,
+      submission_text: r.submission_text, ...(r.scope_fence ? { scope_fence: r.scope_fence } : {}),
     })),
     blocked: by('blocked').concat(rejected),
     escalated: by('escalated'),

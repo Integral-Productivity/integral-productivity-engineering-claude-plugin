@@ -147,8 +147,8 @@ that matches no admitted issue is logged as unused.
    verified tree, worktree, and `mergeOrder` for the first item of a
    same-file lane) plus `needsReverify` (with the SHA, base and verified
    tree a re-verify run takes as its previous ones, the fixer's
-   `submission_text` and the `scope_fence` with its `scope_fence_source`,
-   which it takes as `submission` and `scopeFence`), `blocked`, `escalated`,
+   `submission_text`, and `scope_fence` when the lead set one, which it takes
+   as `submission` and `scopeFence`), `blocked`, `escalated`,
    `deferred` and `skipped`, each with its reason and
    SHA where there is one. An error on one item, such as an agent failure or
    an exhausted budget, is recorded as blocked for that item; items that
@@ -188,7 +188,7 @@ Workflow({
       previousSha: "<needsReverify sha>",
       previousBase: "<needsReverify base>",
       submission: "<the needsReverify entry's submission_text>",
-      scopeFence: "<the needsReverify entry's scope_fence>"
+      scopeFence: "<the entry's scope_fence; leave the key out when the entry has none>"
     }
   }
 })
@@ -218,11 +218,16 @@ cleaned like other agent text (printable ASCII, `\u` escapes) with a
 
 The scope fence, when given as `scopeFence`, reaches the verifier and the
 pass inside a data fence, so the verifier's out-of-fence check has
-something to check against. `scope_fence_source` says whether it was the
-lead's `scopeFence` or the admission agent's advisory suggestion. Without
-one, the dispatch says the fence is the files changed in
+something to check against. `needsReverify` carries `scope_fence` only when
+the lead's `scopeFence` set it. The admission agent's fence is a guess from
+issue text anyone can edit, so it is never carried: passed back, it would
+replace the tighter default as the binding fence. Without one, the
+dispatch says the fence is the files changed in
 `<previousBase>..<previousSha>`, and that a file new to the rebased change
 in the range-diff is out of fence.
+
+A throw from the verifier agent reports the item under `blocked` with the
+error, cleaned, as the fix-mode lane does; it never fails the workflow.
 
 Every `reverify` field is checked before any agent runs, and a bad one
 stops the workflow: `issue` a positive integer; `branch` matching
@@ -506,10 +511,13 @@ Its scenarios:
 55. below the budget, nothing runs and the item is deferred
 56. `needsReverify` carrying the trimmed base and verified tree
 57. `needsReverify` carrying the cleaned `submission_text` (over 500
-    characters kept) and the scope fence with its source, lead or admission;
-    a supplied `scopeFence` with a forged closer staying fenced and printable
-    in the pass and verifier prompts; without one, the previous diff named
-    as the fence
+    characters kept), and `scope_fence` only when the lead set it; an entry
+    from an admission-derived fence carrying none, and a reverify run built
+    from it naming the previous diff as the fence; a supplied `scopeFence`
+    with a forged closer staying fenced and printable in the pass and
+    verifier prompts
+58. a verifier agent that throws in reverify mode: the item under `blocked`
+    with the cleaned error, the workflow not rejected
 
 The stub `pipeline()` drops an item whose stage throws to `null`, as the
 runtime does.
@@ -587,11 +595,15 @@ Each mutant below was checked to load and to fail on an assertion, not on a synt
   tree-comparison sentence dropped; the re-verify claim and worktree lines
   changed; the "`sha` is" instruction dropped; `readyToOpen.sha` taken from
   `previousSha`; `submission_text` dropped from `needsReverify`, left
-  uncleaned, or capped at 500; the scope fence or its source dropped, a
-  supplied fence unfenced, and the no-fence sentence dropped. Taking
+  uncleaned, or capped at 500; the scope fence dropped, a supplied fence
+  unfenced, and the no-fence sentence dropped. Taking
   `readyToOpen.sha` from the shared result's `shaText(sha)` instead of the
   argument is an equivalent mutant: the argument is already a validated,
   untrimmed full hex id, so `shaText` returns it unchanged
+- for issue #113 rework round 2: the admission agent's fence carried
+  into `needsReverify` again; the reverify verifier's catch removed;
+  `readyToOpen.sha` taken from the verdict's `sha` (test 51's verifier
+  returns it with a trailing newline)
 - for issue #113: the mode check, the reverify-without-mode check, the
   admission-args check, the unknown-key check, the issue check, the
   sha-equals-previousSha check and the submission type check each removed;
