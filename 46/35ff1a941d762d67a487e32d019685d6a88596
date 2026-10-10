@@ -1,0 +1,29 @@
+tools/fix-queue.test.mjs
+  s_5343ec90be42c6::t_2d63ebf3c87342 186-188
+  s_5343ec90be42c6::t_89dd9abff31b55 228-233
+  s_5343ec90be42c6::t_26a81f391e71ae 241-242
+  s_5343ec90be42c6::t_81e61606ace2ae 31-33,38-39,41-42
+  s_5343ec90be42c6::t_c929bb7aad47a5 113-115
+  s_5343ec90be42c6::t_10baf5c64169a6 72-79
+  s_5343ec90be42c6::t_11f521fb603af0 471-500
+workflows/fix-queue.js
+  s_5343ec90be42c6::t_2a586ed4d45323 109-110
+  s_5343ec90be42c6::t_14ce72e7ac186f 431,434-468,471-472
+  s_5343ec90be42c6::t_d785763ebd8b52 355-357,363-376
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4635ff1a941d762d67a487e32d019685d6a88596",
+  "prompts": {},
+  "sessions": {
+    "s_5343ec90be42c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "21b6a401-ac02-4371-a127-e6ee2049193a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kraig Parkinson <kraigparkinson@integralproductivity.com>"
+    }
+  }
+}
