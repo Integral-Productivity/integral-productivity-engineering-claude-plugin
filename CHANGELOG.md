@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.6...v0.19.0) (2026-10-10)
+
+
+### Features
+
+* **fix-queue:** add a reverify mode for needsReverify items ([#161](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/161)) ([5f1cbbc](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/5f1cbbc525369da2820fec75c72559e657c9caa5))
+
 ## [0.18.6](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.5...v0.18.6) (2026-10-10)
 
 
