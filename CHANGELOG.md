@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.6](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.5...v0.18.6) (2026-10-10)
+
+
+### Bug Fixes
+
+* **verifier:** match the cleanup guard and the exit-15 check against resolved paths ([#158](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/158)) ([f5f8674](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/f5f86749f467f1c5680ece3e1a7198aedd411602))
+
 ## [0.18.5](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.4...v0.18.5) (2026-10-10)
 
 
