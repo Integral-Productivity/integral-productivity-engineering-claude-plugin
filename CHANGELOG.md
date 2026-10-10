@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.1...v0.18.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* **profiles:** require review depth in the verdict line and no hand edits before ce-work ([#140](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/140)) ([d23fcf2](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/d23fcf2eec591242f19c9de867a0e5bb5cfb7769))
+
 ## [0.18.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.0...v0.18.1) (2026-10-10)
 
 
