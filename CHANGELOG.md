@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.3](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.2...v0.18.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* **fixer:** pin ce-debug to mode:return-to-caller ([#144](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/144)) ([2e1687d](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/2e1687d28d6ee36ef333136fb77b80af19a090ed))
+
 ## [0.18.2](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.1...v0.18.2) (2026-10-10)
 
 
