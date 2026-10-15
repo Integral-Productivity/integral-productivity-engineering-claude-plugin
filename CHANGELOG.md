@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.19.0...v0.19.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* keep plugin and skill descriptions inside Claude's upload limits ([#168](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/168)) ([16cc4fd](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/16cc4fd49bcf107881498dd58dc4222c436552ad))
+
 ## [0.19.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.6...v0.19.0) (2026-10-10)
 
 
