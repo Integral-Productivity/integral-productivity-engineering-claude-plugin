@@ -140,7 +140,8 @@ text/markdown`, and `disableConversionToGoogleType: true`. The connector
 cannot change an existing file's content, so to replace a CLAUDE.md: create
 the new one, then trash the old one. Then run the query
 `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'` and confirm it returns
-exactly one file.
+exactly one file. Follow `nextPageToken` until it is absent: just after a
+replacement, the first page can be empty.
 
 ### Step 5 — Give the Claude Project pointer
 
@@ -150,8 +151,9 @@ Project instructions load in every session, and Project docs do not.
 
 > The `<DRIVE_NAME>` Google Shared Drive (ID `<DRIVE_ID>`) is the only
 > source of truth. Before any work, read its `CLAUDE.md`: Google Drive
-> `search_files` with `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'`.
-> Do not add Project docs that copy or list drive files.
+> `search_files` with `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'`,
+> following `nextPageToken` until it is absent. Do not add Project docs
+> that copy or list drive files.
 
 ## Cross-references
 

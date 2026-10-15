@@ -26,8 +26,10 @@ optional; nothing in this file depends on a local path.
 - **This file:** the file titled `CLAUDE.md` whose parent is the drive root
   (Shared Drive ID `<DRIVE_ID>`). Find it with `search_files` and the query
   `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'`. Do not record its file
-  ID anywhere: each revision through the connector gets a new one. If the
-  search returns more than one file, stop and ask the human.
+  ID anywhere: each revision through the connector gets a new one. Follow
+  `nextPageToken` until it is absent; an empty first page does not mean the
+  file is missing. If the search returns more than one file, stop and ask
+  the human.
 - **A Claude Project bound to this drive** holds one pointer: the query
   above. It holds no drive content and no list of drive files.
 - **No file list is kept**, here or in a Project. Find files at the time of
