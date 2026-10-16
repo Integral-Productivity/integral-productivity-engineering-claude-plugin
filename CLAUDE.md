@@ -39,6 +39,10 @@ agents/<agent>.md                   # Agent profiles (auto-discovered; spawn as 
 - **Sibling skills must remain composable.** If `bootstrap-mcp-server` needs invocation steps that only make sense after the router has run, surface that in the router; don't bake router assumptions into the sibling.
 - **`description` field is the activation contract.** When editing any SKILL.md's frontmatter `description`, treat it as a load-bearing API — be deliberate about which phrases and contexts make the skill fire.
 
+## Documented solutions
+
+`docs/solutions/` holds learnings from past work: problems solved, failure modes and team practices, each with YAML frontmatter (`module`, `component`, `tags`, `problem_type`). Before working on the fixer/verifier profiles, `fix-queue`, or a skill that already has a learning, grep its frontmatter for the module or tags you are touching, and read any match first.
+
 ## Credentials Required
 
 Org variables (no repo-level config needed):
