@@ -1,7 +1,7 @@
 {
   "name": "integral-productivity-engineering",
   "description": "Engineering practice for Integral Productivity, covering the life of a repo and of a unit of work. Cold-start routes new repos to the right work-type template and scaffolding skill (bootstrap-mcp-server, bootstrap-private-sdk) and checks they classify under devops-excellence's tier/work-type model. Issue-triage assigns state, category and the accountable GlassFrog role (SAE-009); writing-dispatch-prompts defines the contract for handing work to another agent session.",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "author": {
     "name": "Integral Productivity",
     "email": "kraigparkinson@integralproductivity.com",
