@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.20.0...v0.21.0) (2026-10-20)
+
+
+### Features
+
+* **skill:** add sweep-stale-preview-resources ([#174](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/174)) ([f839966](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/f839966c5ffb53fd80cc371c4aa8aa4c2c8d58c3))
+
 ## [0.20.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.19.1...v0.20.0) (2026-10-19)
 
 
