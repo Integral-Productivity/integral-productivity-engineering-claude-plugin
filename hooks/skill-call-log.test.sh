@@ -131,5 +131,14 @@ else
   not_ok "two calls: first line intact"
 fi
 
+# 7. A subagent's call (agent_id present): exit 0, silent, no line.
+mkdir -p "$tmp/p7"
+run "$tmp/p7" - "$(input s-7 compound-engineering:lfg | sed 's/^{/{"agent_id":"a0d1","agent_type":"general-purpose",/')"
+if quiet && [ ! -s "$tmp/p7/logs/skill-calls.jsonl" ]; then
+  ok "subagent call: exit 0, no line"
+else
+  not_ok "subagent call: exit 0, no line" "$(why); log: $(cat "$tmp/p7/logs/skill-calls.jsonl" 2>/dev/null)"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

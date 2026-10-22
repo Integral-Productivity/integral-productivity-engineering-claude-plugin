@@ -10,6 +10,9 @@
 # sessions actually invoke compound-engineering:lfg. Temporary: remove this hook and its
 # hooks.json entry once the measurement window closes.
 #
+# Only the main session's calls are logged: a call that carries agent_id comes from a subagent,
+# would be filed under the parent's session_id, and would read as the parent invoking the skill.
+#
 # Never blocks and never prints: it writes only to the log, every failure (malformed input,
 # unwritable folder) exits 0 silently, and it returns no decision, so the Skill call always
 # proceeds. No jq: fields are read from the single-line hook JSON with bash pattern matching,
@@ -33,6 +36,9 @@ field() { # NAME HAYSTACK -> $val (escaped body), status 1 when absent
 field session_id "$input" || exit 0
 session=$val
 [ -n "$session" ] || exit 0
+
+# A subagent's call: not the main session's, so not logged.
+field agent_id "$input" && [ -n "$val" ] && exit 0
 
 after=${input#*\"tool_input\"}
 [ "$after" != "$input" ] || exit 0
