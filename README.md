@@ -20,6 +20,15 @@ Engineering practice for Integral Productivity, packaged as a Claude Code plugin
 | `/devops-cold-start` | slash command | Manual invocation of the cold-start router (for cases where phrase-detection misses). |
 | `/issue-triage` | slash command | Manual invocation of the triage skill against an issue number or a backlog scope. |
 | `/sweep-stale-preview-resources` | slash command | Manual invocation of the sweep against a provider, project or resource name. |
+| `babysit-pr` | PostToolUse hook | After an agent opens a pull request (`gh pr create`, or an MCP `create_pull_request` tool), tells it to babysit the PR to a merge-ready state: `/compound-engineering:ce-babysit-pr <url>` with posture `target` in a local session with `gh`, or `subscribe_pr_activity` in a cloud session. It never tells the agent to merge. Silent on every other call. See [ADR-0004](docs/adr/0004-babysit-every-agent-opened-pull-request-through-a-posttooluse-hook.md). |
+
+## Hooks
+
+| Hook | Event | Opt-out |
+|---|---|---|
+| `babysit-pr` | `PostToolUse` | `IPE_BABYSIT_PR_HOOK=off` (also `0` or `false`) |
+
+The hook needs `node` on `PATH`. Without it, the hook does nothing.
 
 ## Install
 
