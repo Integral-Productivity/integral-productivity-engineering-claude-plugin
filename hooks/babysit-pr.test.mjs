@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const WRAPPER = fileURLToPath(new URL('./babysit-pr.sh', import.meta.url));
-const PR_URL = 'https://github.com/Integral-Productivity/example-repo/pull/42';
+const PR_URL = 'https://github.com/acme/widgets/pull/42';
 
 // A bin dir holding a fake `gh`, plus the real node and cat, so tests control
 // whether gh is on PATH without depending on the host.
@@ -45,7 +45,7 @@ const ghCreate = (stdout) => ({
 const mcpCreate = (name, text) => ({
   hook_event_name: 'PostToolUse',
   tool_name: name,
-  tool_input: { owner: 'Integral-Productivity', repo: 'example-repo', title: 't', head: 'h', base: 'main' },
+  tool_input: { owner: 'acme', repo: 'widgets', title: 't', head: 'h', base: 'main' },
   tool_response: [{ type: 'text', text }],
 });
 
@@ -55,7 +55,7 @@ test('gh pr create in a local session with gh: tells the agent to run ce-babysit
   const r = run(ghCreate(`Creating pull request...\n${PR_URL}\n`));
   assert.equal(r.status, 0);
   assert.equal(r.json.hookSpecificOutput.hookEventName, 'PostToolUse');
-  assert.match(context(r), /\/compound-engineering:ce-babysit-pr https:\/\/github\.com\/Integral-Productivity\/example-repo\/pull\/42/);
+  assert.match(context(r), /\/compound-engineering:ce-babysit-pr https:\/\/github\.com\/acme\/widgets\/pull\/42/);
   assert.match(context(r), /posture `?target`?/);
   assert.match(context(r), /[Nn]ever merge/);
   assert.doesNotMatch(context(r), /subscribe_pr_activity/);
@@ -65,7 +65,7 @@ test('cloud session: tells the agent to subscribe_pr_activity with owner, repo a
   const r = run(ghCreate(`${PR_URL}\n`), { env: { CLAUDE_CODE_REMOTE: 'true' } });
   assert.equal(r.status, 0);
   assert.match(context(r), /subscribe_pr_activity/);
-  assert.match(context(r), /owner: "Integral-Productivity", repo: "example-repo", pullNumber: 42/);
+  assert.match(context(r), /owner: "acme", repo: "widgets", pullNumber: 42/);
   assert.match(context(r), /[Nn]ever merge/);
   assert.doesNotMatch(context(r), /run `\/compound-engineering:ce-babysit-pr/);
 });
@@ -80,13 +80,13 @@ test('GitHub MCP create_pull_request: reads the URL from the JSON text block', (
   for (const name of ['mcp__github__create_pull_request', 'mcp__GitHub_Extended__create_pull_request', 'mcp__plugin_engineering_github__create_pull_request']) {
     const r = run(mcpCreate(name, text));
     assert.equal(r.status, 0, name);
-    assert.match(context(r), /example-repo\/pull\/42/, name);
+    assert.match(context(r), /widgets\/pull\/42/, name);
   }
 });
 
 test('a GitHub Enterprise host is read too', () => {
-  const r = run(ghCreate('https://ghe.example.com/acme/widgets/pull/7\n'), { env: { CLAUDE_CODE_REMOTE: 'true' } });
-  assert.match(context(r), /owner: "acme", repo: "widgets", pullNumber: 7/);
+  const r = run(ghCreate('https://ghe.example.com/initech/tps/pull/7\n'), { env: { CLAUDE_CODE_REMOTE: 'true' } });
+  assert.match(context(r), /owner: "initech", repo: "tps", pullNumber: 7/);
 });
 
 const silent = (r, label) => {
