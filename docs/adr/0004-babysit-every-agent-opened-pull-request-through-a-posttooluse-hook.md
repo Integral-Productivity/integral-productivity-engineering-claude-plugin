@@ -4,7 +4,7 @@ Date: 2026-10-22
 
 ## Status
 
-Proposed
+Accepted (2026-10-22, by the operator, after [#177](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/pull/177) merged)
 
 ## Context
 
