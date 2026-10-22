@@ -52,10 +52,10 @@ now=$(date -u +%Y-%m-%dT%H:%M:%SZ) || exit 0
 
 root=${IPE_PROJECT_FILES_ROOT:-/mnt/project-files}
 if [ -d "$root" ]; then
-  mkdir -p "$root/logs" || exit 0
+  [ -d "$root/logs" ] || mkdir -p "$root/logs" || exit 0
   log=$root/logs/skill-calls.jsonl
 elif [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
-  mkdir -p "$CLAUDE_PLUGIN_DATA" || exit 0
+  [ -d "$CLAUDE_PLUGIN_DATA" ] || mkdir -p "$CLAUDE_PLUGIN_DATA" || exit 0
   log=$CLAUDE_PLUGIN_DATA/skill-calls.jsonl
 else
   exit 0
