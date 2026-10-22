@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.22.0...v0.23.0) (2026-10-22)
+
+
+### Features
+
+* **hooks:** state the standing lfg rule at session start and log skill calls ([#180](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/180)) ([352d5ee](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/352d5eef71e25767e83df51599118e1ea0ccac38))
+
 ## [0.22.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.21.0...v0.22.0) (2026-10-22)
 
 
