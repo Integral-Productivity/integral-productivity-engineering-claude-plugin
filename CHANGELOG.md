@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.21.0...v0.22.0) (2026-10-22)
+
+
+### Features
+
+* **hooks:** babysit every agent-opened pull request ([#177](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/177)) ([aa8d67a](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/aa8d67adac98a6dbf6ed9211a2c1e1275fe4896b))
+
 ## [0.21.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.20.0...v0.21.0) (2026-10-20)
 
 
