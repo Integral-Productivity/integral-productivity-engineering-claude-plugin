@@ -37,3 +37,20 @@ jobs:
           persist-credentials: false
       - name: Check for internal repo references
         run: node tools/check-internal-refs.mjs
+
+  hook-tests:
+    # PostToolUse hook that tells an agent to babysit the PR it just opened
+    # (ADR-0004). node:test, no dependencies, no network.
+    name: Hook tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run hook tests
+        run: node --test hooks/babysit-pr.test.mjs
