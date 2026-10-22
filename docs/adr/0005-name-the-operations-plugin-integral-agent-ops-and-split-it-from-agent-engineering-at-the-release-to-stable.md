@@ -10,7 +10,7 @@ Applies [ADR-0003](0003-split-engineering-practice-into-a-software-engineering-c
 
 ## Context
 
-`integral-productivity-asset-ops` v0.1.0 lived at `plugins/integral-productivity-asset-ops/` in the `Integral-Productivity/skills` monorepo, which is being wound down. It shipped only as a claude.ai upload and had four skills: `asset-catalog`, `asset-lifecycle`, `bundle-builder` and `plugin-publisher`. All four read or wrote that monorepo. None of them knew the marketplace catalogs, `claude-config` or install verification.
+`integral-productivity-asset-ops` v0.1.0 lived in an internal skills monorepo that is being wound down. It shipped only as a claude.ai upload and had four skills: `asset-catalog`, `asset-lifecycle`, `bundle-builder` and `plugin-publisher`. All four read or wrote that monorepo. None of them knew the marketplace catalogs, `claude-config` or install verification.
 
 ADR-0003 creates a separate Integral Agent Engineering plugin for the engineering of agents (`writing-dispatch-prompts`, `fixer`, `verifier`, `fix-queue`). Two plugins that both handle "agentic assets" need a boundary, or new work lands in whichever one the author thinks of first.
 
@@ -27,12 +27,12 @@ Applying the ADR-0003 split rule to the operations work:
 
 ## Decision
 
-1. **Name.** The plugin is **Integral Agent Ops**, plugin name `agent-ops`, repository `Integral-Productivity/agent-ops-claude-plugin`. It replaces `integral-productivity-asset-ops`; the namespace changes to `agent-ops:`.
+1. **Name.** The plugin is **Integral Agent Ops**, plugin name `agent-ops`, in its own internal repository. It replaces `integral-productivity-asset-ops`; the namespace changes to `agent-ops:`.
 2. **Seam.** The boundary between Integral Agent Engineering and Integral Agent Ops is the **release to `stable`**:
    - Before it is engineering: design, scaffold, implement, test, review, `claude plugin validate` in CI, the plugin template.
    - The release itself (release-please, the `vX.Y.Z` tag, `promote-stable.yml`) stays in each plugin repo. Checking that it ran belongs to Ops.
    - After it is operations: catalog and lifecycle state, catalog entries, `claude-config` cloud-environment lists, install verification on each surface, upload-limit checks before publishing, deprecation and removal.
-3. **Direction of moves.** Work moves from the old asset-ops into Agent Ops only. Nothing moves from Agent Ops to Agent Engineering. `bundle-builder` and `plugin-publisher` are replaced by `agent-ops:plugin-release` (agent-ops#4, agent-ops#6).
+3. **Direction of moves.** Work moves from the old asset-ops into Agent Ops only. Nothing moves from Agent Ops to Agent Engineering. `bundle-builder` and `plugin-publisher` are replaced by one `agent-ops:plugin-release` skill.
 
 ## Consequences
 
