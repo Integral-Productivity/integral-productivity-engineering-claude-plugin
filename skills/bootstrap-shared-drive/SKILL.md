@@ -147,7 +147,10 @@ If the drive has no folders yet, remove `<FOLDER_MAP>`.
 Write two files at the drive root: `AGENTS.md` (the rendered templates) and
 `CLAUDE.md` (the stub from `templates/stub-CLAUDE.md`, unchanged). Ask
 before you write either one; both are drive-root files. First check which
-of the two already exist, then take the one action for that state:
+of the two already exist. Use the same query as the write check below
+(`title = '<TITLE>' and parentId = '<DRIVE_ID>'`, following `nextPageToken`
+until it is absent), because just after a replacement the first page can be
+empty. Then take the one action for that state:
 
 | Drive root holds | Action |
 |---|---|
@@ -156,6 +159,8 @@ of the two already exist, then take the one action for that state:
 | `AGENTS.md` and the stub `CLAUDE.md` | Regenerate: show a diff of the header sections of `AGENTS.md` only (domain holder, essential context, provenance), confirm, and keep its hand-added bullets. Leave the stub as it is. |
 | `AGENTS.md` and a `CLAUDE.md` that is not the stub (an interrupted migration, or a regeneration by an older version of this skill) | `AGENTS.md` is canonical. Show the human the "Working in this drive" bullets and sections found only in `CLAUDE.md`, ask which to keep, merge those into `AGENTS.md`, then replace `CLAUDE.md` with the stub. |
 | `AGENTS.md`, no `CLAUDE.md` | Regenerate `AGENTS.md` as in the third row, then write the stub `CLAUDE.md`. |
+| The stub `CLAUDE.md`, no `AGENTS.md` | Stop and ask the human. The canonical file is missing; do not render a new `AGENTS.md` without confirmation, because its hand-added sections may be lost. |
+| More than one file with either title | Stop and ask the human. Show each file's `modifiedTime` and whether it is the stub. |
 
 A `CLAUDE.md` is the stub when its only non-empty lines are the stub
 template's two lines.
