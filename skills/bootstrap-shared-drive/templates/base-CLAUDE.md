@@ -1,4 +1,7 @@
-# <DRIVE_NAME> — Claude Code Context
+# <DRIVE_NAME> — Agent Context
+
+This is the canonical agent context for this Shared Drive. The drive's
+`CLAUDE.md` only imports this file. Edit this file, not `CLAUDE.md`.
 
 ## Domain holder
 
@@ -12,7 +15,7 @@
 
 - Ask before creating, renaming, or deleting files at the drive root;
   subfolders are fair game.
-- Keep this CLAUDE.md current — if the domain holder or essential context
+- Keep this AGENTS.md current — if the domain holder or essential context
   changes, regenerate via the `bootstrap-shared-drive` skill rather than
   hand-editing the header sections above.
 - <DRIVE_TYPE_SPECIFIC_CONVENTIONS>
@@ -23,13 +26,16 @@ This Shared Drive is the only source of truth for its files. Use the Google
 Drive connector to reach it. The local mount (Google Drive for desktop) is
 optional; nothing in this file depends on a local path.
 
-- **This file:** the file titled `CLAUDE.md` whose parent is the drive root
+- **This file:** the file titled `AGENTS.md` whose parent is the drive root
   (Shared Drive ID `<DRIVE_ID>`). Find it with `search_files` and the query
-  `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'`. Do not record its file
+  `title = 'AGENTS.md' and parentId = '<DRIVE_ID>'`. Do not record its file
   ID anywhere: each revision through the connector gets a new one. Follow
   `nextPageToken` until it is absent; an empty first page does not mean the
   file is missing. If the search returns more than one file, stop and ask
   the human.
+- **The `CLAUDE.md` stub** at the drive root holds one sentence and the
+  import line `@AGENTS.md`. Put no rules in it: connector sessions and
+  other agents do not read it.
 - **A Claude Project bound to this drive** holds one pointer: the query
   above. It holds no drive content and no list of drive files.
 - **No file list is kept**, here or in a Project. Find files at the time of
@@ -52,4 +58,5 @@ optional; nothing in this file depends on a local path.
 Generated <DATE> by `bootstrap-shared-drive` v<SKILL_VERSION> from the
 `<DRIVE_TYPE>` template.
 Standard: [SAE-015](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md).
-Access and location rules: [SAE-019](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-019-shared-drive-context-is-reached-through-the-drive-connector.md).
+Access and location rules: [SAE-020](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-020-shared-drive-context-is-reached-through-the-drive-connector.md).
+File names (AGENTS.md canonical, CLAUDE.md stub): [SAE-023](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-023-shared-drive-context-lives-in-agents-md.md).
