@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.24.0...v0.25.0) (2026-10-26)
+
+
+### Features
+
+* **governance:** adopt devops-excellence standard ([#187](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/187)) ([6cf62cb](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/6cf62cb7f25ac970d1ade32ff29891130a7c39d8))
+
 ## [0.24.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.23.0...v0.24.0) (2026-10-22)
 
 
