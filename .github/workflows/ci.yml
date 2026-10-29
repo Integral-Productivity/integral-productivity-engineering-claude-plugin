@@ -56,7 +56,8 @@ jobs:
         run: node --test hooks/babysit-pr.test.mjs
 
   bash-hook-tests:
-    # The standing-lfg SessionStart hook and the skill-call log hook are bash, run as
+    # The standing-lfg SessionStart hook, the skill-call log hook and the two
+    # compound-engineering artifact hooks (ADR-0006) are bash, run as
     # `bash ...` from hooks.json. On a Mac that resolves to /bin/bash 3.2 unless Homebrew bash
     # comes first on PATH, so each suite runs under both. A suite's first argument is the
     # interpreter the hook runs under. No network beyond the Homebrew install.
@@ -89,8 +90,12 @@ jobs:
         run: |
           /bin/bash hooks/standing-lfg.test.sh /bin/bash
           /bin/bash hooks/skill-call-log.test.sh /bin/bash
+          /bin/bash hooks/stage-ce-artifact.test.sh /bin/bash
+          /bin/bash hooks/warn-untracked-ce-artifacts.test.sh /bin/bash
 
       - name: Run hook suites under Homebrew bash 5
         run: |
           "$BASH5" hooks/standing-lfg.test.sh "$BASH5"
           "$BASH5" hooks/skill-call-log.test.sh "$BASH5"
+          "$BASH5" hooks/stage-ce-artifact.test.sh "$BASH5"
+          "$BASH5" hooks/warn-untracked-ce-artifacts.test.sh "$BASH5"

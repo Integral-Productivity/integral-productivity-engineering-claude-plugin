@@ -1,5 +1,5 @@
 {
-  "description": "Babysit every agent-opened pull request (ADR-0004; opt out with IPE_BABYSIT_PR_HOOK=off). State the standing compound-engineering:lfg rule at every session start (standing-lfg.sh). Log each Skill call as one JSON line to measure adherence to that rule (skill-call-log.sh, temporary).",
+  "description": "Babysit every agent-opened pull request (ADR-0004; opt out with IPE_BABYSIT_PR_HOOK=off). State the standing compound-engineering:lfg rule at every session start (standing-lfg.sh). Log each Skill call as one JSON line to measure adherence to that rule (skill-call-log.sh, temporary). Stage each new compound-engineering artifact (docs/plans, ideation, brainstorms, adr, solutions) at write time, and name uncommitted ones at Stop (stage-ce-artifact.sh, warn-untracked-ce-artifacts.sh; ADR-0006; opt out with IPE_CE_ARTIFACT_HOOKS=off, override directories with IPE_CE_ARTIFACT_DIRS).",
   "hooks": {
     "PostToolUse": [
       {
@@ -8,6 +8,16 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/babysit-pr.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/stage-ce-artifact.sh\"",
             "timeout": 10
           }
         ]
@@ -32,6 +42,17 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-call-log.sh\"",
             "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/warn-untracked-ce-artifacts.sh\"",
+            "timeout": 10
           }
         ]
       }
