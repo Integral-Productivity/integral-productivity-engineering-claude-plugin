@@ -1,11 +1,5 @@
 {
   "extraKnownMarketplaces": {
-    "compound-engineering-plugin": {
-      "source": {
-        "source": "github",
-        "repo": "EveryInc/compound-engineering-plugin"
-      }
-    },
     "integral-productivity-internal": {
       "source": {
         "source": "github",
@@ -20,13 +14,11 @@
     }
   },
   "enabledPlugins": {
-    "compound-engineering@compound-engineering-plugin": true,
     "integral-productivity-engineering@integral-productivity-internal": true,
     "software-architecture@integral-productivity-labs": true,
     "product-architecture@integral-productivity-internal": true,
     "lean-management@integral-productivity-labs": true,
-    "software-architecture@integral-productivity-internal": true,
-    "lean-management@integral-productivity-internal": true
+    "compound-engineering@integral-productivity-labs": true
   },
   "hooks": {
     "SessionStart": [

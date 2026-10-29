@@ -37,3 +37,60 @@ jobs:
           persist-credentials: false
       - name: Check for internal repo references
         run: node tools/check-internal-refs.mjs
+
+  hook-tests:
+    # PostToolUse hook that tells an agent to babysit the PR it just opened
+    # (ADR-0004). node:test, no dependencies, no network.
+    name: Hook tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run hook tests
+        run: node --test hooks/babysit-pr.test.mjs
+
+  bash-hook-tests:
+    # The standing-lfg SessionStart hook and the skill-call log hook are bash, run as
+    # `bash ...` from hooks.json. On a Mac that resolves to /bin/bash 3.2 unless Homebrew bash
+    # comes first on PATH, so each suite runs under both. A suite's first argument is the
+    # interpreter the hook runs under. No network beyond the Homebrew install.
+    name: Bash hook tests
+    runs-on: macos-15
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # One retry: a transient Homebrew failure should not fail the job.
+      - name: Install bash 5
+        run: |
+          brew install bash || { sleep 15; brew install bash; }
+          echo "BASH5=$(brew --prefix)/bin/bash" >> "$GITHUB_ENV"
+
+      - name: Check the interpreters
+        run: |
+          /bin/bash -c 'echo "/bin/bash $BASH_VERSION"; [ "${BASH_VERSINFO[0]}" -eq 3 ]'
+          "$BASH5" -c 'echo "bash 5: $BASH_VERSION"; [ "${BASH_VERSINFO[0]}" -ge 5 ]'
+          command -v python3
+
+      - name: Run hook suites under /bin/bash (3.2)
+        run: |
+          /bin/bash hooks/standing-lfg.test.sh /bin/bash
+          /bin/bash hooks/skill-call-log.test.sh /bin/bash
+
+      - name: Run hook suites under Homebrew bash 5
+        run: |
+          "$BASH5" hooks/standing-lfg.test.sh "$BASH5"
+          "$BASH5" hooks/skill-call-log.test.sh "$BASH5"

@@ -1,5 +1,61 @@
 # Changelog
 
+## [0.26.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.25.0...v0.26.0) (2026-10-29)
+
+
+### Features
+
+* **bootstrap-shared-drive:** find drive files through the Drive connector (SAE-019) ([#167](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/167)) ([4dc660f](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/4dc660f4bcbcf68eb473e82236dce8455652afd1))
+
+## [0.25.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.24.0...v0.25.0) (2026-10-26)
+
+
+### Features
+
+* **governance:** adopt devops-excellence standard ([#187](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/187)) ([6cf62cb](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/6cf62cb7f25ac970d1ade32ff29891130a7c39d8))
+
+## [0.24.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.23.0...v0.24.0) (2026-10-22)
+
+
+### Features
+
+* **governance:** adopt devops-excellence standard ([#183](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/183)) ([01439ba](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/01439baa79a99c06e64b7bcbbf1a965ada854d33))
+
+## [0.23.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.22.0...v0.23.0) (2026-10-22)
+
+
+### Features
+
+* **hooks:** state the standing lfg rule at session start and log skill calls ([#180](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/180)) ([352d5ee](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/352d5eef71e25767e83df51599118e1ea0ccac38))
+
+## [0.22.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.21.0...v0.22.0) (2026-10-22)
+
+
+### Features
+
+* **hooks:** babysit every agent-opened pull request ([#177](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/177)) ([aa8d67a](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/aa8d67adac98a6dbf6ed9211a2c1e1275fe4896b))
+
+## [0.21.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.20.0...v0.21.0) (2026-10-20)
+
+
+### Features
+
+* **skill:** add sweep-stale-preview-resources ([#174](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/174)) ([f839966](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/f839966c5ffb53fd80cc371c4aa8aa4c2c8d58c3))
+
+## [0.20.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.19.1...v0.20.0) (2026-10-19)
+
+
+### Features
+
+* **governance:** adopt devops-excellence standard ([#170](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/170)) ([1490bf3](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/1490bf386e4758f1960aaa9ac00f9a39940354af))
+
+## [0.19.1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.19.0...v0.19.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* keep plugin and skill descriptions inside Claude's upload limits ([#168](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/168)) ([16cc4fd](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/16cc4fd49bcf107881498dd58dc4222c436552ad))
+
 ## [0.19.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.18.6...v0.19.0) (2026-10-10)
 
 

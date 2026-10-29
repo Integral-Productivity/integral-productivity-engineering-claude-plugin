@@ -1,0 +1,40 @@
+{
+  "description": "Babysit every agent-opened pull request (ADR-0004; opt out with IPE_BABYSIT_PR_HOOK=off). State the standing compound-engineering:lfg rule at every session start (standing-lfg.sh). Log each Skill call as one JSON line to measure adherence to that rule (skill-call-log.sh, temporary).",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|mcp__.*__create_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/babysit-pr.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/standing-lfg.sh\" SessionStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-call-log.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
