@@ -53,6 +53,10 @@ version: 0.1.0
   Use the fallback template and leave the domain-holder line as an open
   question for the human, per
   [SAE-015](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md).
+- **Never write a file inventory or a `CLAUDE.md` file ID** into the
+  CLAUDE.md or into a Claude Project. Write the Shared Drive ID and, at
+  most, top-level folder IDs. Sessions find files live. See
+  [SAE-019](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-019-shared-drive-context-is-reached-through-the-drive-connector.md).
 - **Never overwrite an existing CLAUDE.md's custom "Working in this drive"
   bullets** below the standard header sections — regenerate the domain
   holder/essential context/provenance blocks only, and ask before touching
@@ -69,6 +73,10 @@ name as seen in the Cowork project). Match the leading character:
 - `◉ <Name>` → **circle-role** type. `<Name>` is the circle or role name as
   it appears in GlassFrog.
 - Anything else → **fallback** type.
+
+Also record the **Shared Drive ID** (it starts with `0A`). The Drive
+connector returns it as the `parentId` of any file at the drive root.
+Substitute it into `<DRIVE_ID>`.
 
 ### Step 2 — Resolve essential context live
 
@@ -108,6 +116,17 @@ frequently contain en-dashes and non-breaking spaces that break typed paths.
 Do **not** create a zone for ◉ or fallback drives — they have no external-party
 audience and the split would be noise.
 
+### Step 3c — Fill the folder map
+
+List the drive root with the Drive connector (`parentId = '<DRIVE_ID>'`).
+Replace `<FOLDER_MAP>` with a `### Folder map` table: each top-level folder's
+title, its folder ID, and its use. For a 👤 drive, mark `_Internal/` as
+Coach-only and the Client-facing folder as Client-facing. Add one line above
+the table: "If a folder ID fails, search for the folder by title and tell the
+human." List folders only. Do not list files.
+
+If the drive has no folders yet, remove `<FOLDER_MAP>`.
+
 ### Step 4 — Write and confirm
 
 Write the result to `CLAUDE.md` at the drive's root. If a CLAUDE.md
@@ -115,10 +134,32 @@ already exists, show a diff of the header sections only (domain holder,
 essential context, provenance) and confirm before overwriting; preserve
 any "Working in this drive" bullets the human already added.
 
+**Through the Drive connector** (a cloud session, no local mount): create the
+file with `create_file`, `parentId: <DRIVE_ID>`, `contentMimeType:
+text/markdown`, and `disableConversionToGoogleType: true`. The connector
+cannot change an existing file's content, so to replace a CLAUDE.md: create
+the new one, then trash the old one. Then run the query
+`title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'` and confirm it returns
+exactly one file. Follow `nextPageToken` until it is absent: just after a
+replacement, the first page can be empty.
+
+### Step 5 — Give the Claude Project pointer
+
+If the drive will be used from a Claude Project, give the human this text
+for the Project's instructions. Do not write it into a Project doc instead:
+Project instructions load in every session, and Project docs do not.
+
+> The `<DRIVE_NAME>` Google Shared Drive (ID `<DRIVE_ID>`) is the only
+> source of truth. Before any work, read its `CLAUDE.md`: Google Drive
+> `search_files` with `title = 'CLAUDE.md' and parentId = '<DRIVE_ID>'`,
+> following `nextPageToken` until it is absent. Do not add Project docs
+> that copy or list drive files.
+
 ## Cross-references
 
 - Standard: [SAE-015: Google Shared Drive CLAUDE.md Standard by Drive Type](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-015-shared-drive-claude-md-standard.md)
 - ◉ drive rule: [SAE-016: ◉ Circle/role drive context is looked up live, not copied](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-016-circle-drive-context-is-looked-up-live.md) (supersedes the ◉ overlay clause of SAE-015)
+- Access and location rule: [SAE-019: Shared Drive context is reached through the Drive connector, and a Claude Project points to it by location](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-019-shared-drive-context-is-reached-through-the-drive-connector.md) (amends the SAE-015 base template)
 - Sibling architecture: [SAE-004: Claude Code Context Architecture](https://github.com/Integral-Productivity/software-architecture-excellence/blob/main/docs/adr/SAE-004-claude-code-context-architecture.md) (git-repo tiers; this skill covers the Shared Drive root SAE-004 doesn't)
 - Coaching plugin invariants: [`integral-productivity-coaching-claude-plugin/CLAUDE.md`](https://github.com/Integral-Productivity/integral-productivity-coaching-claude-plugin/blob/main/CLAUDE.md)
 
