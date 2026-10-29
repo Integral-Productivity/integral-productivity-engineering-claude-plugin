@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.27.0...v0.28.0) (2026-10-29)
+
+
+### Features
+
+* **hooks:** stage compound-engineering artifacts at write time and warn at Stop ([#194](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/194)) ([02a4228](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/02a422896b6a629751912507708b13277876e3ed))
+
 ## [0.27.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.26.0...v0.27.0) (2026-10-29)
 
 
