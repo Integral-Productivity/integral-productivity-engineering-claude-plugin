@@ -35,6 +35,8 @@ hooks/hooks.json                    # Hook registrations (auto-discovered); each
 hooks/babysit-pr.{sh,mjs}           # PostToolUse: babysit an agent-opened PR (ADR-0004)
 hooks/standing-lfg.{sh,md}          # SessionStart: states the standing lfg rule; the .md is a vendored byte copy of the canonical rule text
 hooks/skill-call-log.sh             # PreToolUse(Skill): logs skill calls to measure lfg adherence (temporary)
+hooks/stage-ce-artifact.sh          # PostToolUse(Write|Edit): stages a new CE artifact in its own repo (ADR-0006)
+hooks/warn-untracked-ce-artifacts.sh # Stop: names uncommitted CE artifacts (ADR-0006); both obey IPE_CE_ARTIFACT_HOOKS, IPE_CE_ARTIFACT_DIRS
 ```
 
 ## Repo conventions specific to this plugin

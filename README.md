@@ -21,14 +21,18 @@ Engineering practice for Integral Productivity, packaged as a Claude Code plugin
 | `/issue-triage` | slash command | Manual invocation of the triage skill against an issue number or a backlog scope. |
 | `/sweep-stale-preview-resources` | slash command | Manual invocation of the sweep against a provider, project or resource name. |
 | `babysit-pr` | PostToolUse hook | After an agent opens a pull request (`gh pr create`, or an MCP `create_pull_request` tool), tells it to babysit the PR to a merge-ready state: `/compound-engineering:ce-babysit-pr <url>` with posture `target` in a local session with `gh`, or `subscribe_pr_activity` in a cloud session. It never tells the agent to merge. Silent on every other call. See [ADR-0004](docs/adr/0004-babysit-every-agent-opened-pull-request-through-a-posttooluse-hook.md). |
+| `stage-ce-artifact` | PostToolUse hook | After a `Write` or `Edit` creates a compound-engineering artifact (a file under `docs/plans/`, `docs/ideation/`, `docs/brainstorms/`, `docs/adr/` or `docs/solutions/`) that is not yet in `HEAD`, runs `git add` on it in its own repository, so the artifact cannot be stranded untracked in one worktree. Respects `.gitignore`; never commits. See [ADR-0006](docs/adr/0006-stage-compound-engineering-artifacts-at-write-time-from-the-engineering-plugin.md). |
+| `warn-untracked-ce-artifacts` | Stop hook | At the end of each turn, lists artifacts in those directories that are not yet committed (untracked, or staged only), in the project repository or, for a multi-repo session root, in each child repository. Shown to the user; never blocks. See [ADR-0006](docs/adr/0006-stage-compound-engineering-artifacts-at-write-time-from-the-engineering-plugin.md). |
 
 ## Hooks
 
 | Hook | Event | Opt-out |
 |---|---|---|
 | `babysit-pr` | `PostToolUse` | `IPE_BABYSIT_PR_HOOK=off` (also `0` or `false`) |
+| `stage-ce-artifact` | `PostToolUse` (`Write\|Edit`) | `IPE_CE_ARTIFACT_HOOKS=off` (also `0` or `false`; disables both artifact hooks) |
+| `warn-untracked-ce-artifacts` | `Stop` | `IPE_CE_ARTIFACT_HOOKS=off` |
 
-The hook needs `node` on `PATH`. Without it, the hook does nothing.
+`babysit-pr` needs `node` on `PATH`. Without it, the hook does nothing. The two artifact hooks need only `bash` and `git`. `IPE_CE_ARTIFACT_DIRS` (comma-separated, repo-relative, for example `docs/plans,notes`) replaces their default directory list.
 
 ## Install
 
