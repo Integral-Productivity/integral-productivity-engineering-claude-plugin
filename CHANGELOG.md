@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.26.0...v0.27.0) (2026-10-29)
+
+
+### Features
+
+* **bootstrap-shared-drive:** write AGENTS.md as the canonical drive context ([#185](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/185)) ([c0fb9d1](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/c0fb9d1a6a62ea31aca0b86ef96c44786c1f45ab))
+
 ## [0.26.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.25.0...v0.26.0) (2026-10-29)
 
 
