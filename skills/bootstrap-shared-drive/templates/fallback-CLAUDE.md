@@ -9,7 +9,7 @@ leaving this blank.>
 
 ## Essential context
 
-<Fill in: what is this drive for, and what does a Claude session need to
+<Fill in: what is this drive for, and what does an agent session need to
 know before acting in it?>
 
 ## Working in this drive

@@ -15,7 +15,7 @@ drive, look up the current context in GlassFrog:
    that response.
 3. If the role ID does not resolve, call `glassfrog_search` with
    "<ROLE_OR_CIRCLE_NAME>" (types: role) and tell the human that this
-   CLAUDE.md needs regeneration.
+   AGENTS.md needs regeneration.
 
 If GlassFrog is not connected, stop and ask the human for the role context.
 Do not guess it.
