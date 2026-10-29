@@ -133,6 +133,23 @@ for bad in 'not json' '' '{"cwd":"x"}' '{"tool_input":{}}' '{"tool_input":{"file
   expect_unstaged "malformed stdin $(printf '%q' "$bad"): exit 0, silent, nothing staged" "$repo" docs/plans/a.md
 done
 
+# 8b. A JSON escape is skipped, not taken literally: a file whose name is the undecoded
+# escape stays unstaged.
+lit='docs/plans/b\u002emd'
+mk "$repo/$lit"
+run "{\"tool_input\":{\"file_path\":\"$repo/docs/plans/b\\u002emd\"}}"
+# staged() cannot see this name (quotePath and grep both treat the backslash specially), so
+# ask the index directly with a literal pathspec.
+if quiet && [ -z "$(git --literal-pathspecs -C "$repo" ls-files -- "$lit")" ]; then ok "file_path with a JSON escape: the literal-named file is not staged"; else not_ok "file_path with a JSON escape: the literal-named file is not staged" "$(why)"; fi
+
+# 8c. A decoy file_path inside content that precedes the real key does not win.
+newrepo
+mk "$repo/docs/plans/real.md"
+mk "$repo/docs/plans/decoy.md"
+run "{\"cwd\":\"$repo\",\"tool_input\":{\"content\":\"\\\"file_path\\\": \\\"$repo/docs/plans/decoy.md\\\"\",\"file_path\":\"$repo/docs/plans/real.md\"}}"
+expect_staged "content before file_path: the real file is staged" "$repo" docs/plans/real.md
+expect_unstaged "content before file_path: the decoy is not staged" "$repo" docs/plans/decoy.md
+
 # 9. The file's repository differs from the session directory.
 newrepo
 session=$repo
