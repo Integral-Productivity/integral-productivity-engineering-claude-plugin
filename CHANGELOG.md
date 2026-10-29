@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.25.0...v0.26.0) (2026-10-29)
+
+
+### Features
+
+* **bootstrap-shared-drive:** find drive files through the Drive connector (SAE-019) ([#167](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/167)) ([4dc660f](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/4dc660f4bcbcf68eb473e82236dce8455652afd1))
+
 ## [0.25.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.24.0...v0.25.0) (2026-10-26)
 
 
