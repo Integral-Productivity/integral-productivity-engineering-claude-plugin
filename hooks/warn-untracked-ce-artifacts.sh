@@ -53,14 +53,14 @@ done
 [ ${#dirs[@]} -gt 0 ] || exit 0
 
 lines=()
-collect() { # TOP LABEL-PREFIX
-  local f
+collect() {
+  local top=$1 label=$2 f
   while IFS= read -r -d '' f; do
-    lines+=("  · $2$f (untracked)")
-  done < <(git -C "$1" -c core.quotePath=false ls-files -z --others --exclude-standard -- "${dirs[@]}")
+    lines+=("  · $label$f (untracked)")
+  done < <(git -C "$top" -c core.quotePath=false ls-files -z --others --exclude-standard -- "${dirs[@]}")
   while IFS= read -r -d '' f; do
-    lines+=("  · $2$f (staged, not committed)")
-  done < <(git -C "$1" -c core.quotePath=false diff --cached --no-renames --name-only -z --diff-filter=A -- "${dirs[@]}")
+    lines+=("  · $label$f (staged, not committed)")
+  done < <(git -C "$top" -c core.quotePath=false diff --cached --no-renames --name-only -z --diff-filter=A -- "${dirs[@]}")
 }
 
 if top=$(git -C "$proj" rev-parse --show-toplevel) && [ -n "$top" ]; then

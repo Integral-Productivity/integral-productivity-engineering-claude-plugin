@@ -56,8 +56,7 @@ case $file in *\\*) exit 0 ;; esac
 case $file in
   /*) ;;
   *)
-    val=
-    field cwd "$input"
+    field cwd "$input" || exit 0
     case $val in '' | *\\*) exit 0 ;; esac
     file=$val/$file
     ;;
@@ -78,9 +77,12 @@ done
 
 dir=${file%/*}
 [ -n "$dir" ] || dir=/
-prefix=$(git -C "$dir" rev-parse --show-prefix) || exit 0
-top=$(git -C "$dir" rev-parse --show-toplevel) || exit 0
-[ -n "$top" ] || exit 0
+# One call, two lines in argument order: the prefix (empty at the top level), then the top level.
+out=$(git -C "$dir" rev-parse --show-prefix --show-toplevel) || exit 0
+nl=$'\n'
+prefix=${out%%"$nl"*}
+top=${out#*"$nl"}
+[ -n "$top" ] && [ "$top" != "$out" ] || exit 0
 rel=$prefix${file##*/}
 
 match=
@@ -90,6 +92,6 @@ done
 [ -n "$match" ] || exit 0
 
 git -C "$top" cat-file -e "HEAD:$rel" && exit 0
-git -C "$top" check-ignore -q -- "$rel" && exit 0
+# Without -f, git add refuses an ignored path, so .gitignore needs no separate check.
 git --literal-pathspecs -C "$top" add -- "$rel" >/dev/null
 exit 0
