@@ -7,8 +7,8 @@ description: >
   extracting a shared client from a project that has grown a second consumer,
   or setting up GitHub Packages publication for an existing TypeScript library.
   Captures the non-obvious gotchas — scope/org naming, cross-platform lockfiles,
-  SAML SSO on PATs, stacked-PR pitfalls — that cost hours of debugging on the
-  glassfrog-sdk-ts bootstrap.
+  SAML SSO on PATs, stacked-PR pitfalls, Dependabot registry tokens — that
+  cost hours of debugging on the glassfrog-sdk-ts bootstrap.
   Also covers the case where the upstream API is undocumented or
   unversioned, where the SDK's real job is drift detection rather than
   convenience. IMPORTANT: invoke this skill BEFORE running
@@ -269,6 +269,32 @@ don't wait for CI to discover it.
 
 The `secrets.GITHUB_TOKEN` in workflows is auto-SSO'd; this only matters for
 developer PATs and platform env vars (Vercel, Render, etc.).
+
+## CI on Dependabot PRs: the registry token lives in the Dependabot secret store
+
+GitHub keeps two separate secret stores. **Actions secrets** are visible to
+ordinary workflow runs. **Dependabot secrets** are the only secrets a run
+triggered by `dependabot[bot]` can read; that run also gets a read-only
+`GITHUB_TOKEN`.
+
+So `${{ secrets.NODE_AUTH_TOKEN }}` in a CI workflow resolves to an **empty
+string** on Dependabot PRs when the token lives only in the Actions store.
+`npm ci` then fails with 401 on `npm.pkg.github.com`, every required check fails
+the same way, and the PR stays blocked.
+
+The tell: *every* Dependabot PR fails the same checks at the install step,
+whichever dependency it bumps, while other PRs that run the same workflow pass.
+
+Fixes, either one:
+
+1. Add the token to the Dependabot store too:
+   `gh secret set NODE_AUTH_TOKEN --app dependabot`.
+2. Use a fallback expression that reuses a token the Dependabot store already
+   holds: `${{ secrets.NODE_AUTH_TOKEN || secrets.DEPENDABOT_PACKAGES_TOKEN }}`.
+
+Add a guard step that fails loudly when the token is empty, so the failure
+names its own cause instead of surfacing as a 401 at install. Worked example:
+glassfrog-mcp-server `docs/adr/0005` (2026-06-15).
 
 ## Consumer setup (the one-liner to paste into the consumer's README)
 
