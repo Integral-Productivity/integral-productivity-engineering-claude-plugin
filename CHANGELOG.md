@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.29.0...v0.30.0) (2026-11-04)
+
+
+### Features
+
+* **bootstrap-private-sdk:** add the Dependabot registry-token gotcha ([#200](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/200)) ([72424a0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/72424a044ae0165600d3dc9b6e6cea07ba19f677))
+
 ## [0.29.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.28.0...v0.29.0) (2026-11-02)
 
 
