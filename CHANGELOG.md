@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.30.0...v0.31.0) (2026-11-06)
+
+
+### Features
+
+* **standing-lfg:** brainstorm before lfg plans ([#202](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/202)) ([f5f5b92](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/f5f5b92d4511dbe70a8d7d7caa953c5429dab1e6))
+
 ## [0.30.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.29.0...v0.30.0) (2026-11-04)
 
 
