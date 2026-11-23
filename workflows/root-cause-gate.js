@@ -33,14 +33,13 @@ const SAFE_PATH = /^\/[A-Za-z0-9._\/-]+$/
 if (typeof A.repo !== 'string' || !SAFE_REPO.test(A.repo)) {
   throw new Error('root-cause-gate needs args.repo as "Owner/name" (letters, digits, . _ - only)')
 }
-function requirePath(name, value) {
+function checkPath(name, value) {
   if (typeof value !== 'string' || !SAFE_PATH.test(value) || value.split('/').includes('..')) {
     throw new Error(`root-cause-gate needs args.${name} as an absolute path of letters, digits, . _ - and / only, with no ..`)
   }
-  return value
 }
-requirePath('repoPath', A.repoPath)
-requirePath('scratch', A.scratch)
+checkPath('repoPath', A.repoPath)
+checkPath('scratch', A.scratch)
 if (!Array.isArray(A.issues) || A.issues.length === 0 || !A.issues.every((n) => Number.isInteger(n) && n > 0)) {
   throw new Error('root-cause-gate needs args.issues as a non-empty list of positive integer issue numbers')
 }
@@ -53,7 +52,6 @@ const GROUP = ISSUES.map((n) => `#${n}`).join(' ')
 const PLAN_DIR = `${A.scratch}/root-cause-gate`
 const REPO_DECLARED = 'Take test tiers and any declared matrix (platforms, hosts, modes) from the target repo itself: its CLAUDE.md, then docs/agents/. Never assume tiers or matrices the repo does not declare; if it declares none, say so.'
 
-// Lens selection (plan KTD5): any of these flags selects every lens.
 const LENS_FOCUS = {
   requirements: 'what the issue and its acceptance criteria actually require, and where the requirement itself is wrong, missing or ambiguous',
   architecture: 'boundaries, contracts between components, and ADRs the defect crosses or contradicts',
@@ -132,7 +130,6 @@ const PLAN_SCHEMA = {
   },
 }
 
-// ---- Reproduce ----
 phase('Reproduce')
 const reproducePrompt = (n) => `Reproduce GitHub issue #${n} of ${A.repo} on current main, in the checkout at ${A.repoPath}. Read the issue with gh. Do not edit any file in the repo; scratch work goes under ${A.scratch}.
 
@@ -154,18 +151,16 @@ ISSUES.forEach((n, i) => {
   else notReproduced.push({ number: n, evidence: r.evidence, acceptance: r.acceptance })
 })
 
+const fixQueueArgs = (issues, scopeFence) => ({ repo: A.repo, repoPath: A.repoPath, issues, scopeFence })
 const emptyReport = (extra = {}) => ({
   reproduced: [], notReproduced, unclassified: [], failed, scopeFence: {}, planFiles: {},
-  fixQueueArgs: { repo: A.repo, repoPath: A.repoPath, issues: [], scopeFence: {} }, ...extra,
+  fixQueueArgs: fixQueueArgs([], {}), ...extra,
 })
 if (live.length === 0) {
   log('root-cause-gate: no issue reproduces on main; nothing to review or plan')
   return emptyReport()
 }
 
-// ---- Review ----
-// Each lens reviewer is independent: it gets only the issue numbers, the repo
-// path and its own lens, never another agent's output.
 phase('Review')
 const lensesFor = (item) => (A.lenses === 'all' || FLAGS.some((f) => item.touches[f] === true) ? ALL_LENSES : CORE_LENSES)
 const lensPrompt = (name, n) => `You are one independent root-cause reviewer for GitHub issue #${n} of ${A.repo}. The group under review is ${GROUP}. The repo's main checkout is at ${A.repoPath}; read the issues with gh. Do not edit any file in the repo.
@@ -180,17 +175,16 @@ Return:
 const jobs = []
 for (const item of live) {
   item.lenses = lensesFor(item)
+  item.reviews = []
   for (const name of item.lenses) jobs.push({ item, name })
 }
 const lensResults = await parallel(jobs.map(({ item, name }) => () => agent(lensPrompt(name, item.number), { label: `lens ${name} #${item.number}`, phase: 'Review', schema: LENS_SCHEMA })))
 jobs.forEach(({ item, name }, i) => {
-  item.reviews = item.reviews || []
   if (lensResults[i]) item.reviews.push({ lens: name, ...lensResults[i] })
 })
 
-// ---- Inventory ----
 phase('Inventory')
-const reviewText = live.map((item) => `Issue #${item.number}:\n${(item.reviews || []).map((r) => `  [${r.lens}] class: ${r.defectClass}\n    causes: ${(r.rootCauses || []).join('; ')}\n    evidence: ${(r.evidence || []).join('; ')}`).join('\n') || '  (no review returned)'}`).join('\n\n')
+const reviewText = live.map((item) => `Issue #${item.number}:\n${item.reviews.map((r) => `  [${r.lens}] class: ${r.defectClass}\n    causes: ${(r.rootCauses || []).join('; ')}\n    evidence: ${(r.evidence || []).join('; ')}`).join('\n') || '  (no review returned)'}`).join('\n\n')
 const inventoryPrompt = `Inventory the defect classes for these reproducing issues of ${A.repo}: ${live.map((i) => `#${i.number}`).join(' ')}. The repo's main checkout is at ${A.repoPath}. Do not edit any file in the repo.
 
 Independent lens reviewers named these root causes and defect classes:
@@ -208,15 +202,15 @@ Merge the reviewers' classes into as few defect classes as the evidence supports
 ${REPO_DECLARED}`
 const inventory = await agent(inventoryPrompt, { label: 'inventory', phase: 'Inventory', schema: INVENTORY_SCHEMA })
 
-// Each live issue joins the first class that lists it. Class ids become plan
-// file names, so they are reduced to safe, unique slugs here.
+// Each live issue joins the first class that lists it.
+const toFileSafeSlug = (id) => String(id).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'class'
 const liveNumbers = new Set(live.map((i) => i.number))
 const classes = []
 const used = new Set()
 for (const c of (inventory && inventory.classes) || []) {
   const members = (c.issues || []).filter((n) => liveNumbers.has(n) && !classes.some((k) => k.issues.includes(n)))
   if (members.length === 0) continue
-  let slug = String(c.id).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'class'
+  let slug = toFileSafeSlug(c.id)
   for (let k = 2; used.has(slug); k++) slug = `${slug.replace(/-\d+$/, '')}-${k}`
   used.add(slug)
   classes.push({ ...c, slug, issues: members, planFile: `${PLAN_DIR}/plan-${slug}.md` })
@@ -228,7 +222,6 @@ if (classes.length === 0) {
   return emptyReport({ unclassified })
 }
 
-// ---- Plan ----
 phase('Plan')
 const classText = classes.map((c) => `- class ${c.slug}: plan file ${c.planFile}
   description: ${c.description}
@@ -277,5 +270,5 @@ return {
   failed,
   scopeFence,
   planFiles,
-  fixQueueArgs: { repo: A.repo, repoPath: A.repoPath, issues: reproducedOut.map((r) => r.number), scopeFence },
+  fixQueueArgs: fixQueueArgs(reproducedOut.map((r) => r.number), scopeFence),
 }
