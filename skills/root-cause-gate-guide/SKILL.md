@@ -48,8 +48,10 @@ its defect class, its sites and its failing test.
    `<scratch>/root-cause-gate/`. Each plan names the test tier, the test file
    and the failing test to write first.
 5. **Fence.** Code, not an agent, builds each issue's scope fence: every file
-   of its class's sites, plus the test file. Issues in one class share one
-   fence and one plan file.
+   of its class's sites, the test file and the plan file. The fence holds only
+   paths and issue numbers, never agent-written prose. Issues in one class
+   share one fence and one plan file, and are one fix: fix-queue gets the
+   class's first issue, and `coveredBy` maps each other issue to it.
 
 Test tiers and matrices come from the target repo (its `CLAUDE.md`, then
 `docs/agents/`), never from this plugin.
@@ -88,7 +90,9 @@ Workflow({ name: 'integral-productivity-engineering:root-cause-gate', args: {
 ```
 
 The report holds `reproduced`, `notReproduced`, `unclassified`, `failed`,
-`scopeFence`, `planFiles` and `fixQueueArgs`.
+`scopeFence`, `planFiles`, `coveredBy` and `fixQueueArgs`. Each `failed` entry
+names the stage that failed for it: `reproduce`, `review`, `inventory` or
+`plan`. A failed issue gets no fence.
 
 ## Passing the result to fix-queue
 
@@ -106,6 +110,8 @@ Before running fix-queue, act on the rest of the report:
 
 - `notReproduced`: update or close each issue with its re-baselined criteria.
 - `unclassified` and `failed`: rerun the gate for them, or triage by hand.
+- `coveredBy`: when the class's fix merges, close each covered issue with a
+  link to it.
 
 ## Residuals
 

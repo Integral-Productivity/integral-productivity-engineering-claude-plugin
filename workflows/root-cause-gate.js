@@ -153,7 +153,7 @@ ISSUES.forEach((n, i) => {
 
 const fixQueueArgs = (issues, scopeFence) => ({ repo: A.repo, repoPath: A.repoPath, issues, scopeFence })
 const emptyReport = (extra = {}) => ({
-  reproduced: [], notReproduced, unclassified: [], failed, scopeFence: {}, planFiles: {},
+  reproduced: [], notReproduced, unclassified: [], failed, scopeFence: {}, planFiles: {}, coveredBy: {},
   fixQueueArgs: fixQueueArgs([], {}), ...extra,
 })
 if (live.length === 0) {
@@ -182,10 +182,19 @@ const lensResults = await parallel(jobs.map(({ item, name }) => () => agent(lens
 jobs.forEach(({ item, name }, i) => {
   if (lensResults[i]) item.reviews.push({ lens: name, ...lensResults[i] })
 })
+const reviewed = []
+for (const item of live) {
+  if (item.reviews.length === 0) failed.push({ number: item.number, stage: 'review' })
+  else reviewed.push(item)
+}
+if (reviewed.length === 0) {
+  log('root-cause-gate: no lens reviewer returned for any reproducing issue')
+  return emptyReport()
+}
 
 phase('Inventory')
-const reviewText = live.map((item) => `Issue #${item.number}:\n${item.reviews.map((r) => `  [${r.lens}] class: ${r.defectClass}\n    causes: ${(r.rootCauses || []).join('; ')}\n    evidence: ${(r.evidence || []).join('; ')}`).join('\n') || '  (no review returned)'}`).join('\n\n')
-const inventoryPrompt = `Inventory the defect classes for these reproducing issues of ${A.repo}: ${live.map((i) => `#${i.number}`).join(' ')}. The repo's main checkout is at ${A.repoPath}. Do not edit any file in the repo.
+const reviewText = reviewed.map((item) => `Issue #${item.number}:\n${item.reviews.map((r) => `  [${r.lens}] class: ${r.defectClass}\n    causes: ${(r.rootCauses || []).join('; ')}\n    evidence: ${(r.evidence || []).join('; ')}`).join('\n') || '  (no review returned)'}`).join('\n\n')
+const inventoryPrompt = `Inventory the defect classes for these reproducing issues of ${A.repo}: ${reviewed.map((i) => `#${i.number}`).join(' ')}. The repo's main checkout is at ${A.repoPath}. Do not edit any file in the repo.
 
 Independent lens reviewers named these root causes and defect classes:
 
@@ -201,13 +210,18 @@ Merge the reviewers' classes into as few defect classes as the evidence supports
 
 ${REPO_DECLARED}`
 const inventory = await agent(inventoryPrompt, { label: 'inventory', phase: 'Inventory', schema: INVENTORY_SCHEMA })
+if (!inventory || !Array.isArray(inventory.classes)) {
+  for (const item of reviewed) failed.push({ number: item.number, stage: 'inventory' })
+  log('root-cause-gate: the inventory agent returned nothing')
+  return emptyReport()
+}
 
 // Each live issue joins the first class that lists it.
 const toFileSafeSlug = (id) => String(id).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'class'
-const liveNumbers = new Set(live.map((i) => i.number))
+const liveNumbers = new Set(reviewed.map((i) => i.number))
 const classes = []
 const used = new Set()
-for (const c of (inventory && inventory.classes) || []) {
+for (const c of inventory.classes) {
   const members = (c.issues || []).filter((n) => liveNumbers.has(n) && !classes.some((k) => k.issues.includes(n)))
   if (members.length === 0) continue
   let slug = toFileSafeSlug(c.id)
@@ -216,7 +230,7 @@ for (const c of (inventory && inventory.classes) || []) {
   classes.push({ ...c, slug, issues: members, planFile: `${PLAN_DIR}/plan-${slug}.md` })
 }
 const classOf = (n) => classes.find((c) => c.issues.includes(n))
-const unclassified = live.filter((i) => !classOf(i.number)).map((i) => ({ number: i.number, lenses: i.lenses }))
+const unclassified = reviewed.filter((i) => !classOf(i.number)).map((i) => ({ number: i.number, lenses: i.lenses }))
 if (classes.length === 0) {
   log('root-cause-gate: the inventory put no reproducing issue in a defect class')
   return emptyReport({ unclassified })
@@ -245,22 +259,34 @@ Return one entry per class: classId (the class name above), planFile, testTier, 
 const planned = await agent(planPrompt, { label: 'plan', phase: 'Plan', schema: PLAN_SCHEMA })
 const planOf = (slug) => ((planned && planned.plans) || []).find((p) => p.classId === slug) || {}
 
-// ---- Fence, in code ----
+// The fence holds only paths and issue numbers, never agent-written prose,
+// because fix-queue treats a lead-supplied fence as authoritative.
+// One class is one fix: fix-queue gets the class's first issue, and the
+// others are reported in coveredBy, so two fixers never edit the same files.
 const scopeFence = {}
 const planFiles = {}
+const coveredBy = {}
 const reproducedOut = []
-for (const item of live) {
+for (const item of reviewed) {
   const c = classOf(item.number)
   if (!c) continue
   const p = planOf(c.slug)
+  if (!p.testFile || !p.failingTest) {
+    failed.push({ number: item.number, stage: 'plan' })
+    continue
+  }
   const files = [...new Set((c.sites || []).map((s) => s.file).filter(Boolean))]
-  const parts = [`Defect class ${c.slug}: ${c.description}`, `Files: ${files.join(', ') || '(no sites listed)'}`]
-  if (p.testFile) parts.push(`Test file: ${p.testFile}`)
-  parts.push(`Plan: ${c.planFile}`)
-  scopeFence[String(item.number)] = parts.join('. ')
-  planFiles[String(item.number)] = c.planFile
+  scopeFence[item.number] = [
+    `Defect class ${c.slug}, issues ${c.issues.map((n) => `#${n}`).join(' ')}`,
+    `Files: ${files.join(', ') || '(no sites listed)'}`,
+    `Test file: ${p.testFile}`,
+    `Plan: ${c.planFile}`,
+  ].join('. ')
+  planFiles[item.number] = c.planFile
+  if (item.number !== c.issues[0]) coveredBy[item.number] = c.issues[0]
   reproducedOut.push({ number: item.number, defectClass: c.slug, lenses: item.lenses, testTier: p.testTier, testFile: p.testFile, failingTest: p.failingTest, planFile: c.planFile })
 }
+const leaders = reproducedOut.map((r) => r.number).filter((n) => !(n in coveredBy))
 
 log(`root-cause-gate: ${reproducedOut.length} fenced, ${notReproduced.length} not reproduced, ${unclassified.length} unclassified, ${failed.length} failed`)
 return {
@@ -270,5 +296,6 @@ return {
   failed,
   scopeFence,
   planFiles,
-  fixQueueArgs: fixQueueArgs(reproducedOut.map((r) => r.number), scopeFence),
+  coveredBy,
+  fixQueueArgs: fixQueueArgs(leaders, Object.fromEntries(leaders.map((n) => [n, scopeFence[n]]))),
 }
