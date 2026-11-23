@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.32.0...v0.33.0) (2026-11-23)
+
+
+### Features
+
+* add a root-cause gate before fix-queue and a shared residual rule ([#208](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/208)) ([#211](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/issues/211)) ([4dd611e](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/commit/4dd611e6c9c7f7fda850c2f93a4a97913869b96f))
+
 ## [0.32.0](https://github.com/Integral-Productivity/integral-productivity-engineering-claude-plugin/compare/v0.31.0...v0.32.0) (2026-11-09)
 
 
