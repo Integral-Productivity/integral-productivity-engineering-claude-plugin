@@ -190,6 +190,10 @@ base directory:
   saved Workflow `integral-productivity-engineering:fix-queue` (the plugin's
   `workflows/fix-queue.js`) that runs claim, fixer, verifier and the rework
   cap as fixed steps, and how to run it.
+- [`reference/residual-rule.md`](reference/residual-rule.md): which gaps a
+  fix closes now, which go to the maintainer, and which the lead files before
+  the PR is marked ready. The root-cause gate, the fixer, the verifier and the
+  lead all apply it.
 - [`reference/guard-code-precedents.md`](reference/guard-code-precedents.md):
   past lead rulings on guard inputs. The one copy; neither profile repeats it.
 - [`reference/ce-config-pins.md`](reference/ce-config-pins.md): the

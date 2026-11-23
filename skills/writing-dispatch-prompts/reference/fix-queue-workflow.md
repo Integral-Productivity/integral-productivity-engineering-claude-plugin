@@ -88,6 +88,13 @@ guess. It is malformed if a key is not an issue number, if a value is not
 non-empty text, or if a key is outside `issues` when `issues` is given. A key
 that matches no admitted issue is logged as unused.
 
+To get a scope fence from the defect class rather than writing one by hand,
+run the root-cause gate first (`integral-productivity-engineering:root-cause-gate`,
+ADR 0007). Its report's `fixQueueArgs` holds `repo`, `repoPath`, `issues` and
+`scopeFence` in the shape above; add `scratch` and any other args and pass
+them here. When its `issues` is empty, nothing reproduced: do not run
+fix-queue. See [`root-cause-gate-guide`](../../root-cause-gate-guide/SKILL.md).
+
 ## What it does
 
 1. **Admit.** One agent reads each candidate. Its prompt sets a boundary: `gh`

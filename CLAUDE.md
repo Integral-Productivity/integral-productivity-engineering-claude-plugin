@@ -31,6 +31,7 @@ skills/<skill-name>/SKILL.md        # One directory per skill
 skills/<skill-name>/reference/...   # Reference files bundled with the skill
 commands/<command>.md               # Slash commands
 agents/<agent>.md                   # Agent profiles (auto-discovered; spawn as integral-productivity-engineering:<agent>)
+workflows/<name>.js                 # Saved Workflows (run as integral-productivity-engineering:<name>): fix-queue, root-cause-gate (ADR-0007)
 hooks/hooks.json                    # Hook registrations (auto-discovered); each hook's tests sit beside it
 hooks/babysit-pr.{sh,mjs}           # PostToolUse: babysit an agent-opened PR (ADR-0004)
 hooks/standing-lfg.{sh,md}          # SessionStart: states the standing lfg rule; the .md is a vendored byte copy of the canonical rule text
