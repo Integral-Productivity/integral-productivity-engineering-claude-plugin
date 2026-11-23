@@ -94,7 +94,9 @@ The report holds `reproduced`, `notReproduced`, `unclassified`, `failed`,
 
 `fixQueueArgs` holds `repo`, `repoPath`, `issues` and `scopeFence`. Add
 `scratch` and any other fix-queue args, and run fix-queue with them. Its
-`scopeFence` wins over the admission agent's guess. See
+`scopeFence` wins over the admission agent's guess. When `fixQueueArgs.issues` is
+empty, no issue reproduced and was classified: do not run fix-queue, because
+it rejects an empty `issues` list. See
 [`fix-queue-workflow.md`](../writing-dispatch-prompts/reference/fix-queue-workflow.md).
 
 fix-queue does not read plan files yet. Until it does, quote each issue's plan

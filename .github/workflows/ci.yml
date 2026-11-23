@@ -55,6 +55,25 @@ jobs:
       - name: Run hook tests
         run: node --test hooks/babysit-pr.test.mjs
 
+  tool-tests:
+    # The tools/ suites: the fix-queue and root-cause-gate workflow scenarios
+    # (stub harness), the residual-rule checks and the repo checks (ADR-0007).
+    # node:test, no dependencies, no network. The glob form is required:
+    # `node --test tools/` does not discover these files.
+    name: Tool and workflow tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run tool and workflow tests
+        run: node --test tools/*.test.mjs
+
   bash-hook-tests:
     # The standing-lfg SessionStart hook, the skill-call log hook and the two
     # compound-engineering artifact hooks (ADR-0006) are bash, run as
